@@ -1,28 +1,28 @@
 {
 	"name": "homebridge-http-motion-sensor",
 	"version": "1.0.0",
-	"description": "Homebridge plugin for remote light bulbs. For the moment this is only a switch",
+	"description": "Homebridge plugin for a remote motion sensor based on http",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/lucavb/homebridge-http-lightbulb.git"
+		"url": "git+https://github.com/lucavb/homebridge-http-motion-sensor.git"
 	},
 	"keywords": [
 		"homebridge-plugin",
 		"homebridge",
 		"homekit",
-		"lightbulb",
-		"switch"
+		"motionsensor",
+		"motion"
 	],
 	"author": "Luca Becker",
-	"license": "ISC",
+	"license": "GPL-3.0",
 	"bugs": {
-		"url": "https://github.com/lucavb/homebridge-http-lightbulb/issues"
+		"url": "https://github.com/lucavb/homebridge-http-motion-sensor/issues"
 	},
-	"homepage": "https://github.com/lucavb/homebridge-http-lightbulb#readme",
+	"homepage": "https://github.com/lucavb/homebridge-http-motion-sensor#readme",
 	"engines" : {
 	    "node": ">=0.12.0",
 	    "homebridge": ">=0.2.0"
