@@ -8,7 +8,6 @@ module.exports = function(homebridge) {
     Characteristic = homebridge.hap.Characteristic;
     HomebridgeAPI = homebridge;
 
-    // console.log(Service.ContactSensor);
     homebridge.registerAccessory("homebridge-http-motion-sensor", "http-motion-sensor", HTTPMotionSensor);
 };
 
@@ -25,7 +24,7 @@ function HTTPMotionSensor(log, config) {
     var that = this;
     this.server = http.createServer(function(request, response) {
         that.httpHandler(that);
-        response.end('It Works!! Path Hit: ' + request.url);
+        response.end('Successfully requested: ' + request.url);
     });
 
 
@@ -47,8 +46,7 @@ function HTTPMotionSensor(log, config) {
         .on('get', this.getState.bind(this));
 
     this.server.listen(this.port, function(){
-        //Callback triggered when server is successfully listening. Hurray!
-        that.log("Motion sensor server listening on: http://localhost:%s", that.port);
+        that.log("Motion sensor server listening on: http://<your ip goes here>:%s", that.port);
     });
 }
 
