@@ -20,6 +20,8 @@ function HTTPMotionSensor(log, config) {
     this.motionDetected = false;
     this.timeout = null;
 
+    this.repeater = config.repeater || [];
+
     var that = this;
     this.server = http.createServer(function(request, response) {
         that.httpHandler(that);
@@ -57,14 +59,22 @@ HTTPMotionSensor.prototype.getState = function(callback) {
 
 HTTPMotionSensor.prototype.httpHandler = function(that) {
     that.log("motion detected");
+
+    for (var i = 0; i < that.repeater.length; i++) {
+        // that.log("reflecting to " + that.repeater[i]);
+        http.get(that.repeater[i], function(res) {
+            // one could do something with this information
+        });
+    }
+
     that.motionDetected = true;
     that.service.getCharacteristic(Characteristic.MotionDetected)
-        .setValue(that.motionDetected, null, "httpHandler");
+        .updateValue(that.motionDetected, null, "httpHandler");
     if (that.timeout) clearTimeout(that.timeout);
     that.timeout = setTimeout(function() {
         that.motionDetected = false;
         that.service.getCharacteristic(Characteristic.MotionDetected)
-            .setValue(that.motionDetected, null, "httpHandler");
+            .updateValue(that.motionDetected, null, "httpHandler");
         that.timeout = null;
     }, 11 * 1000);
 };
