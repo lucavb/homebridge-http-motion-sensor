@@ -9,6 +9,8 @@ Run the following command
 npm install -g homebridge-http-motion-sensor
 ```
 
+Chances are you are going to need sudo with that.
+
 ## Config.json
 
 This is an example configuration
