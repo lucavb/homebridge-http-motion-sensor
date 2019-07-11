@@ -18,6 +18,7 @@ function HTTPMotionSensor(log, config) {
     this.port = config.port;
     this.motionDetected = false;
     this.timeout = null;
+    this.bind_ip = config.bind_ip || "0.0.0.0";
 
     this.repeater = config.repeater || [];
 
@@ -31,7 +32,7 @@ function HTTPMotionSensor(log, config) {
 
     // info service
     this.informationService = new Service.AccessoryInformation();
-        
+
     this.informationService
         .setCharacteristic(Characteristic.Manufacturer, "PIR Manufacturer")
         .setCharacteristic(Characteristic.Model, config.model || "HC-SR501")
@@ -45,7 +46,7 @@ function HTTPMotionSensor(log, config) {
     this.service.getCharacteristic(Characteristic.MotionDetected)
         .on('get', this.getState.bind(this));
 
-    this.server.listen(this.port, function(){
+    this.server.listen(this.port, this.bind_ip, function(){
         that.log("Motion sensor server listening on: http://<your ip goes here>:%s", that.port);
     });
 }
