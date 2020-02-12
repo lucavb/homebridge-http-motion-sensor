@@ -17,7 +17,7 @@
       },
       "serial": {
         "title": "Serial #",
-        "description": "use this as an added layer of security",
+        "description": "displayed in HomeKit",
         "type": "string",
         "required": false
       },
