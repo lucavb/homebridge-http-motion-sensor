@@ -71,10 +71,15 @@
           {
             "key":"repeater",
             "items":[
-              "repeater[].host",
-              "repeater[].port",
-              "repeater[].path",
-              "repeater[].auth"
+              {
+                "key":"repeater[]",
+                "items":[
+                  "repeater[].host",
+                  "repeater[].port",
+                  "repeater[].path",
+                  "repeater[].auth"
+                ]
+              }
             ]
           }
       ]
