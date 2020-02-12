@@ -1,0 +1,83 @@
+{
+  "pluginAlias": "http-motion-sensor",
+  "pluginType": "accessory",
+  "singular": false,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "title": "HTTP Port",
+        "type": "number",
+        "required": true
+      },
+      "serial": {
+        "title": "Serial #",
+        "description": "use this as an added layer of security",
+        "type": "string",
+        "required": false
+      },
+      "bind_ip": {
+        "title": "Bind IP",
+        "description": "bind to a specific IP",
+        "type": "string",
+        "required": false
+      },
+      "repeater": {
+        "title": "Repeater",
+        "type": "array",
+        "items":[
+          {
+            "type":"object",
+            "properties":{
+              "host":{
+                "name":"Host",
+                "type":"string"
+              },
+              "port":{
+                "name":"Port",
+                "type":"number"
+              },
+              "path":{
+                "name":"Path",
+                "type":"string"
+              },
+              "auth":{
+                "name":"Auth",
+                "description":"username:password",
+                "type":"string"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "form": [
+    "name",
+    "port",
+    "serial",
+    "bind_ip",
+    {
+      "type": "section",
+      "expandable": true,
+      "expanded": false,
+      "title": "Repeaters",
+      "items": [
+          {
+            "key":"repeater",
+            "items":[
+              "repeater[].host",
+              "repeater[].port",
+              "repeater[].path",
+              "repeater[].auth"
+            ]
+          }
+      ]
+    }
+  ]
+}
