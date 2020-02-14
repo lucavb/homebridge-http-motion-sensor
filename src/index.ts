@@ -26,15 +26,6 @@ class HomebridgeHttpMotionSensor {
     }
 
     private prepareServices() {
-        // info service
-        const informationService = new AccessoryInformation(this.config.name, 'httpmotionsensor_info');
-
-        informationService
-            .setCharacteristic(Characteristic.Manufacturer, "PIR Manufacturer")
-            .setCharacteristic(Characteristic.Model, this.config.model || "HC-SR501")
-            .setCharacteristic(Characteristic.SerialNumber, this.config.serial || "4BD53931-D4A9-4850-8E7D-8A51A842FA29");
-        this.services.push(informationService);
-
         this.motionSensorService = new MotionSensor(this.config.name, 'httpmotionsensor');
         this.motionSensorService.getCharacteristic(Characteristic.MotionDetected)?.
             on(CharacteristicEventTypes.GET, this.getState.bind(this));
