@@ -1,9 +1,13 @@
 import http from 'http';
 import { Characteristic, Service, CharacteristicEventTypes, CharacteristicGetCallback } from 'hap-nodejs';
 import { HomebridgeHttpMotionSensorConfig } from './types';
-import { AccessoryInformation, MotionSensor } from 'hap-nodejs/dist/lib/gen/HomeKit';
+import { MotionSensor } from 'hap-nodejs/dist/lib/gen/HomeKit';
+
+let homebridgeService;
 
 export default function (homebridge: any): void {
+    homebridgeService = homebridge.hap.Service;
+
     homebridge.registerAccessory("homebridge-http-motion-sensor", "http-motion-sensor", HomebridgeHttpMotionSensor);
 };
 
@@ -17,16 +21,25 @@ class HomebridgeHttpMotionSensor {
 
     private motionSensorService!: MotionSensor;
 
+    private server: http.Server;
+
+    private bind_ip: string;
+
     constructor(private log: any, private config: HomebridgeHttpMotionSensorConfig) {
         this.prepareServices();
-        http.createServer((request, response) => {
+        this.bind_ip = config.bind_ip || "0.0.0.0";
+        this.server = http.createServer((request, response) => {
             this.httpHandler();
             response.end('Successfully requested: ' + request.url);
+        });
+
+        this.server.listen(this.config.port, this.bind_ip, () => {
+            this.log(`The device '${this.config.name}' is can now be reached under http://${this.bind_ip}:${this.config.port}`);
         });
     }
 
     private prepareServices() {
-        this.motionSensorService = new MotionSensor(this.config.name, 'httpmotionsensor');
+        this.motionSensorService = new homebridgeService.MotionSensor(this.config.name, 'httpmotionsensor');
         this.motionSensorService.getCharacteristic(Characteristic.MotionDetected)?.
             on(CharacteristicEventTypes.GET, this.getState.bind(this));
         this.services.push(this.motionSensorService);
