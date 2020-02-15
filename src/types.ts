@@ -1,3 +1,5 @@
+import { IAccessoryConfig } from "./homebridgeApi";
+
 export interface HomebridgeHttpMotionSensorRepeaterEntry {
     host: string;
     port: number;
@@ -5,8 +7,7 @@ export interface HomebridgeHttpMotionSensorRepeaterEntry {
     auth?: string;
 }
 
-export interface HomebridgeHttpMotionSensorConfig {
-    name: string;
+export interface HomebridgeHttpMotionSensorConfig extends IAccessoryConfig {
     port: number;
     model?: string;
     serial?: string;

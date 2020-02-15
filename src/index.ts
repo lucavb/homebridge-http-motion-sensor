@@ -1,23 +1,22 @@
-import http from 'http';
-import { Characteristic, Service, CharacteristicEventTypes, CharacteristicGetCallback } from 'hap-nodejs';
-import { HomebridgeHttpMotionSensorConfig } from './types';
+import { Characteristic, CharacteristicEventTypes, CharacteristicGetCallback } from 'hap-nodejs';
 import { MotionSensor } from 'hap-nodejs/dist/lib/gen/HomeKit';
+import http from 'http';
+import { HomebridgeAccessory, HomebridgeApi } from './homebridgeApi';
+import { HomebridgeHttpMotionSensorConfig } from './types';
 
-let homebridgeService;
+let homebridgeService: any;
 
-export default function (homebridge: any): void {
+export default function (homebridge: HomebridgeApi): void {
     homebridgeService = homebridge.hap.Service;
 
     homebridge.registerAccessory("homebridge-http-motion-sensor", "http-motion-sensor", HomebridgeHttpMotionSensor);
 };
 
-class HomebridgeHttpMotionSensor {
+class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
 
     private motionDetected: boolean = false;
 
     private timeout: NodeJS.Timeout | null = null;
-
-    private readonly services: Service[] = [];
 
     private motionSensorService!: MotionSensor;
 
@@ -25,7 +24,8 @@ class HomebridgeHttpMotionSensor {
 
     private bind_ip: string;
 
-    constructor(private log: any, private config: HomebridgeHttpMotionSensorConfig) {
+    constructor(private log: any, protected config: HomebridgeHttpMotionSensorConfig) {
+        super();
         this.prepareServices();
         this.bind_ip = config.bind_ip || "0.0.0.0";
         this.server = http.createServer((request, response) => {
@@ -34,12 +34,12 @@ class HomebridgeHttpMotionSensor {
         });
 
         this.server.listen(this.config.port, this.bind_ip, () => {
-            this.log(`The device '${this.config.name}' is can now be reached under http://${this.bind_ip}:${this.config.port}`);
+            this.log(`The device '${this.config.name}' can now be reached under http://${this.bind_ip}:${this.config.port}`);
         });
     }
 
     private prepareServices() {
-        this.motionSensorService = new homebridgeService.MotionSensor(this.config.name, 'httpmotionsensor');
+        this.motionSensorService = new homebridgeService.MotionSensor(this.config.name);
         this.motionSensorService.getCharacteristic(Characteristic.MotionDetected)?.
             on(CharacteristicEventTypes.GET, this.getState.bind(this));
         this.services.push(this.motionSensorService);
@@ -68,10 +68,6 @@ class HomebridgeHttpMotionSensor {
 
     private getState(callback: CharacteristicGetCallback) {
         callback(null, this.motionDetected);
-    }
-
-    public getServices(): Service[] {
-        return this.services;
     }
 
 }
