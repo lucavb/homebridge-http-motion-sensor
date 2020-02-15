@@ -29,7 +29,7 @@ export interface IAccessoryConfig {
 
 export abstract class HomebridgeAccessory {
 
-    protected services: Service[];
+    protected services: Service[] = [];
 
     protected config: IAccessoryConfig;
 
