@@ -1,4 +1,4 @@
-import { IAccessoryConfig } from "./homebridgeApi";
+import {IAccessoryConfig} from "./homebridgeApi";
 
 export interface HomebridgeHttpMotionSensorRepeaterEntry {
     host: string;

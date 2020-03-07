@@ -23,7 +23,7 @@ This is an example configuration
         "name": "Hallway Motion Sensor",
         "port": 18089,
         "serial" : "E642011E3ECB",
-        "bind_ip" : "0.0.0.0"
+        "bind_ip" : "0.0.0.0",
         "repeater" : [
                 {
                     "host" : "192.168.2.11",
