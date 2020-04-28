@@ -4,9 +4,12 @@
     "description": "Homebridge plugin for a remote motion sensor based on http",
     "main": "dist/index.js",
     "scripts": {
-        "build": "tsc --outDir dist/"
+        "build": "npx tsc",
+        "test": "npx jest",
+        "clean": "rm -rf dist",
+        "cbuild": "npm run clean && npm run build",
+        "prepare": "npm run cbuild"
     },
-    "prepublish": "npm run build",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/lucavb/homebridge-http-motion-sensor.git"
@@ -29,7 +32,9 @@
         "homebridge": ">=0.2.0"
     },
     "dependencies": {
-        "hap-nodejs": "^0.5.6"
+        "hap-nodejs": "^0.6.4",
+        "homebridge": "^1.0.1",
+        "homebridge-ts-helper": "^1.0.8"
     },
     "devDependencies": {
         "@types/node": "^13.7.1",
