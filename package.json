@@ -21,7 +21,7 @@
         "motionsensor",
         "motion"
     ],
-    "author": "Luca Becker",
+    "author": "Luca Becker <luca.becker@sunbury.xyz> (https://sunbury.xyz/)",
     "license": "GPL-3.0",
     "bugs": {
         "url": "https://github.com/lucavb/homebridge-http-motion-sensor/issues"
