@@ -3,10 +3,15 @@
         "target": "es6",
         "module": "commonjs",
         "declaration": true,
-        "strict": false,
+        "strict": true,
         "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "dist"
     },
-    "include": ["src"],
-    "exclude": ["node_modules"]
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
 }
