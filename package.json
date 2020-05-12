@@ -8,6 +8,7 @@
         "test": "npx jest",
         "clean": "rm -rf dist",
         "cbuild": "npm run clean && npm run build",
+        "format": "npx eslint --fix src/**/*.ts",
         "prepare": "npm run cbuild"
     },
     "repository": {
