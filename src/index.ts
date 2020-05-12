@@ -2,9 +2,9 @@ import {Characteristic, CharacteristicEventTypes, CharacteristicGetCallback} fro
 import http from 'http';
 import {API, Logging} from 'homebridge';
 import {HomebridgeAccessory} from 'homebridge-ts-helper';
-import {HomebridgeHttpMotionSensorConfig, validationConfig} from "./types";
-import {validateConfig} from "homebridge-ts-helper/dist/configValidator";
-import {MotionSensor} from "hap-nodejs/dist/lib/gen/HomeKit";
+import {HomebridgeHttpMotionSensorConfig, validationConfig} from './types';
+import {validateConfig} from 'homebridge-ts-helper/dist/configValidator';
+import {MotionSensor} from 'hap-nodejs/dist/lib/gen/HomeKit';
 
 let MotionSensorConstructor: typeof MotionSensor;
 
