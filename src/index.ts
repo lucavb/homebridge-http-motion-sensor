@@ -1,5 +1,5 @@
 import {Characteristic, CharacteristicEventTypes, CharacteristicGetCallback} from 'hap-nodejs';
-import http from 'http';
+import {Server, get, createServer} from 'http';
 import {API, Logging} from 'homebridge';
 import {HomebridgeAccessory} from 'homebridge-ts-helper';
 import {HomebridgeHttpMotionSensorConfig, validationConfig} from './types';
@@ -21,7 +21,7 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
 
     private motionSensorService!: MotionSensor;
 
-    private server?: http.Server;
+    private server?: Server;
 
     private readonly bindIP?: string;
 
@@ -36,7 +36,7 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
         }
         this.prepareServices();
         this.bindIP = config.bind_ip ?? '0.0.0.0';
-        this.server = http.createServer((request, response) => {
+        this.server = createServer((request, response) => {
             this.httpHandler();
             response.end('Successfully requested: ' + request.url);
         });
@@ -60,8 +60,8 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
     private httpHandler() {
         if (this.config.repeater) {
             for (const repeater of this.config.repeater) {
-                http.get(repeater, (res) => {
-                    // one could do something with this information
+                get(repeater).on('error', (e) => {
+                    this.log.warn(`a repeater request to the host ${repeater.host} failed. Please see this error: ${e.message}`);
                 });
             }
         }
