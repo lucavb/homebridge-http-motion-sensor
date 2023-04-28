@@ -38,7 +38,7 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
         this.bindIP = config.bind_ip ?? '0.0.0.0';
         this.server = createServer((request, response) => {
             this.httpHandler();
-            response.end('Successfully requested: ' + request.url);
+            response.end('{"Successfully requested": ' + '"' + request.url + '"}');
         });
 
         this.server.listen(this.config.port!, this.bindIP, () => {
