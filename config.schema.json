@@ -47,7 +47,7 @@
             },
             "auth":{
               "name":"Auth",
-              "description":"username:password",
+              "placeholder":"username:password",
               "type":"string"
             }
           }
@@ -55,26 +55,29 @@
       }
     }
   },
-  "form": [
-    "name",
+  "layout": [
+    {
+			"type": "flex",
+			"flex-flow": "row wrap",
+			"items": [
+				"name"
+			]
+		},
     "port",
     "serial",
     "bind_ip",
     {
-      "type": "section",
+      "type": "fieldset",
+      "title": "Repeater Configuration",
       "expandable": true,
-      "expanded": false,
-      "title": "Repeaters",
+			"flex-flow": "column wrap",
+			"displayFlex": true,
+			"flex-direction": "column",
       "items":[
-        {
-          "key":"repeater",
-          "items":[
-            "repeater[].host",
-            "repeater[].port",
-            "repeater[].path",
-            "repeater[].auth"
-          ]
-        }
+        "repeater[].host",
+        "repeater[].port",
+        "repeater[].path",
+        "repeater[].auth"
       ]
     }
   ]
