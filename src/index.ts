@@ -54,7 +54,11 @@ class HttpMotionSensor {
     this.bindIP = config.bind_ip ?? '0.0.0.0';
     this.server = createServer((request, response) => {
       this.httpHandler();
-      response.end('{"Successfully requested": ' + '"' + request.url + '"}');
+      response.setHeader('Content-Type', 'application/json');
+      response.statusCode = 200;
+      response.end(JSON.stringify({
+        'Successfully requested': request.url,
+      }));
     });
 
     this.server.listen(this.config.port!, this.bindIP, () => {
@@ -74,7 +78,7 @@ class HttpMotionSensor {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, MANUFACTURER)
       .setCharacteristic(Characteristic.Model, MODEL)
-      .setCharacteristic(Characteristic.SerialNumber, this.config.port ? this.config.port.toString() : SERIAL_NUMBER)
+      .setCharacteristic(Characteristic.SerialNumber, this.config.serial ? this.config.serial : SERIAL_NUMBER)
       .setCharacteristic(Characteristic.FirmwareRevision, FIRMWARE_REVISION);
 
     this.homebridgeService
