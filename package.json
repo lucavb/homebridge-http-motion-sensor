@@ -1,6 +1,6 @@
 {
     "name": "homebridge-http-motion-sensor",
-    "version": "1.2.2",
+    "version": "2.0.0",
     "description": "Homebridge plugin for a remote motion sensor based on http",
     "files": [
         "dist"
@@ -45,7 +45,7 @@
         "lint": "eslint --max-warnings=0",
         "lint:fix": "eslint --fix --max-warnings=0 .",
         "watch": "nodemon",
-        "build": "rimraf ./dist && tsc",
+        "build": "rimraf ./dist && tsc && npm link",
         "prepublishOnly": "npm run lint && npm run build"
     },
     "main": "dist/src/index.js",
@@ -55,7 +55,7 @@
         ],
         "ext": "ts",
         "ignore": [],
-        "exec": "npm run build && DEBUG= node ./node_modules/homebridge-config-ui-x/dist/bin/hb-service.js run --stdout -U ./test/hbConfig -T -D -I -P ./ | tee -a ./test/hbConfig/homebridge.log",
+        "exec": "npm run build && DEBUG= node ./node_modules/homebridge-config-ui-x/dist/bin/hb-service.js run --stdout -U ./test/hbConfig -D -I | tee -a ./test/hbConfig/homebridge.log",
         "signal": "SIGTERM",
         "env": {
             "NODE_OPTIONS": "--trace-warnings"
