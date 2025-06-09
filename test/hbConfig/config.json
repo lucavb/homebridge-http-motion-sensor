@@ -1,0 +1,33 @@
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "AA:BB:CC:DD:EE:01",
+        "port": 51826,
+        "pin": "031-45-154"
+    },
+    "description": "HomeBridge HTTP Status Control",
+    "plugins": [
+        "homebridge-http-motion-sensor",
+        "homebridge-config-ui-x"
+    ],
+    "platforms": [
+        {
+            "name": "Config",
+            "port": 8581,
+            "auth": "none",
+            "theme": "orange",
+            "lightingMode": "auto",
+            "menuMode": "default",
+            "tempUnits": "c",
+            "lang": "auto",
+            "platform": "config"
+        }
+    ],
+    "accessories": [
+        {
+            "name": "Motion Sensor",
+            "port": 10300,
+            "accessory": "http-motion-sensor"
+        }
+    ]
+}
