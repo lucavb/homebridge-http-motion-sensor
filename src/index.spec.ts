@@ -1,4 +1,5 @@
 import plugin from './index';
+import { expect, jest, it, describe } from '@jest/globals';
 
 describe('http-motion-sensor plugin', () => {
   it('should export a function', () => {
