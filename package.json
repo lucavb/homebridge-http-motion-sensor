@@ -22,7 +22,8 @@
         "test:quick": "npm run build && mkdir -p .tmp && cp tests/test-config.json .tmp/config.json && homebridge -D -U .tmp -P ."
     },
     "files": [
-        "dist"
+        "dist",
+        "config.schema.json"
     ],
     "repository": {
         "type": "git",
