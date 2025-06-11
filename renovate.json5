@@ -1,0 +1,49 @@
+{
+    $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+    extends: ['config:recommended', ':automergeLinters', ':automergeTesters', ':automergeTypes'],
+    addLabels: ['dependencies'],
+    automergeType: 'branch',
+    prConcurrentLimit: 5,
+    rebaseWhen: 'behind-base-branch',
+    semanticCommits: 'enabled',
+    semanticCommitType: 'chore',
+    semanticCommitScope: 'deps',
+    packageRules: [
+        {
+            matchUpdateTypes: ['patch'],
+            matchCurrentAge: '2 days',
+            automerge: true,
+            addLabels: ['automerge:patch'],
+        },
+        {
+            matchUpdateTypes: ['minor'],
+            matchCurrentAge: '5 days',
+            automerge: true,
+            addLabels: ['automerge:minor'],
+        },
+        {
+            matchDepTypes: ['devDependencies'],
+            matchUpdateTypes: ['patch'],
+            matchCurrentAge: '1 day',
+            automerge: true,
+            addLabels: ['automerge:dev-patch'],
+        },
+        {
+            matchUpdateTypes: ['major'],
+            automerge: false,
+            addLabels: ['manual-review:major'],
+            reviewers: ['lucavb'],
+        },
+        {
+            matchDatasources: ['npm'],
+            vulnerabilityAlerts: {
+                enabled: true,
+            },
+            matchCurrentAge: '0 days',
+            automerge: true,
+            addLabels: ['security-update'],
+        },
+    ],
+    timezone: 'Europe/Berlin',
+    minimumReleaseAge: '2 days',
+}
