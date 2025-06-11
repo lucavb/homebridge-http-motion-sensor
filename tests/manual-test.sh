@@ -1,12 +1,15 @@
 #!/bin/bash
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Build the plugin first
 echo "Building plugin..."
 npm run build
 
 # Create temporary directory and copy config
 mkdir -p .tmp
-cp test-config.json .tmp/config.json
+cp "$SCRIPT_DIR/test-config.json" .tmp/config.json
 
 echo "Starting Homebridge for manual testing..."
 echo "Motion Sensor 1: http://localhost:18089"
