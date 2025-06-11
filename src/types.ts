@@ -1,5 +1,5 @@
-import {IValidationConfig} from 'homebridge-ts-helper/dist/configValidator';
-import {AccessoryConfig} from 'homebridge';
+import { IValidationConfig } from 'homebridge-ts-helper/dist/configValidator';
+import { AccessoryConfig } from 'homebridge';
 
 export interface HomebridgeHttpMotionSensorRepeaterEntry {
     host: string;

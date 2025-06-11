@@ -1,10 +1,10 @@
-import {Characteristic, CharacteristicEventTypes, CharacteristicGetCallback} from 'hap-nodejs';
-import {Server, get, createServer} from 'http';
-import {API, Logging} from 'homebridge';
-import {HomebridgeAccessory} from 'homebridge-ts-helper';
-import {HomebridgeHttpMotionSensorConfig, validationConfig} from './types';
-import {validateConfig} from 'homebridge-ts-helper/dist/configValidator';
-import {MotionSensor} from 'hap-nodejs/dist/lib/gen/HomeKit';
+import { Characteristic, CharacteristicEventTypes, CharacteristicGetCallback } from 'hap-nodejs';
+import { Server, get, createServer } from 'http';
+import { API, Logging } from 'homebridge';
+import { HomebridgeAccessory } from 'homebridge-ts-helper';
+import { HomebridgeHttpMotionSensorConfig, validationConfig } from './types';
+import { validateConfig } from 'homebridge-ts-helper/dist/configValidator';
+import { MotionSensor } from 'hap-nodejs/dist/lib/gen/HomeKit';
 
 let MotionSensorConstructor: typeof MotionSensor;
 
@@ -14,7 +14,6 @@ export default (homebridge: API): void => {
 };
 
 class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
-
     private motionDetected: boolean = false;
 
     private timeout: NodeJS.Timeout | null = null;
@@ -25,9 +24,11 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
 
     private readonly bindIP?: string;
 
-    constructor(protected readonly log: Logging,
-                protected readonly config: HomebridgeHttpMotionSensorConfig,
-                protected readonly api: API) {
+    constructor(
+        protected readonly log: Logging,
+        protected readonly config: HomebridgeHttpMotionSensorConfig,
+        protected readonly api: API,
+    ) {
         super(log, config);
         const result = validateConfig(this.config, validationConfig);
         if (!result.valid) {
@@ -42,7 +43,9 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
         });
 
         this.server.listen(this.config.port!, this.bindIP, () => {
-            this.log(`The device '${this.config.name}' can now be reached under http://${this.bindIP}:${this.config.port}`);
+            this.log(
+                `The device '${this.config.name}' can now be reached under http://${this.bindIP}:${this.config.port}`,
+            );
         });
 
         this.api.on('shutdown', () => {
@@ -52,7 +55,8 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
 
     private prepareServices() {
         this.motionSensorService = new MotionSensorConstructor(this.config.name);
-        this.motionSensorService.getCharacteristic(Characteristic.MotionDetected)
+        this.motionSensorService
+            .getCharacteristic(Characteristic.MotionDetected)
             ?.on(CharacteristicEventTypes.GET, this.getState.bind(this));
         this.services.push(this.motionSensorService);
     }
@@ -61,7 +65,9 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
         if (this.config.repeater) {
             for (const repeater of this.config.repeater) {
                 get(repeater).on('error', (e) => {
-                    this.log.warn(`a repeater request to the host ${repeater.host} failed. Please see this error: ${e.message}`);
+                    this.log.warn(
+                        `a repeater request to the host ${repeater.host} failed. Please see this error: ${e.message}`,
+                    );
                 });
             }
         }
@@ -76,7 +82,7 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
             this.motionSensorService.getCharacteristic(Characteristic.MotionDetected)?.updateValue(this.motionDetected);
             this.timeout = null;
         }, 11 * 1000);
-    };
+    }
 
     private getState(callback: CharacteristicGetCallback) {
         callback(null, this.motionDetected);

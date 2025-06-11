@@ -5,6 +5,7 @@ This plugin offers you a motion sensor that can be triggerd via an HTTP request.
 ## Installation
 
 Run the following command
+
 ```
 npm install -g homebridge-http-motion-sensor
 ```
@@ -36,11 +37,11 @@ This is an example configuration
 ]
 ```
 
-| Key           | Description                                                                        |
-|---------------|------------------------------------------------------------------------------------|
-| accessory     | Required. Has to be "http-motion-sensor"                                             |
-| name          | Required. The name of this accessory. This will appear in your homekit app         |
-| port         | Required. The port that you want this plugin to listen on. Choose a number above 1024. |
-| serial         | Optional. Assigns a serial number. Not really required but I would advise in making up some arbitrary string. |
-| repeater         | Optional. Whenever the http server setup by this plugin is hit, it will also make a request to each entry in this array. I am using it to turn on a screen in my hallway. See [this](https://nodejs.org/api/http.html#http_http_get_options_callback) for further information. |
-| bind_ip       | Optional. If you know what this is, you'll know what to do with it.               |
+| Key       | Description                                                                                                                                                                                                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| accessory | Required. Has to be "http-motion-sensor"                                                                                                                                                                                                                                       |
+| name      | Required. The name of this accessory. This will appear in your homekit app                                                                                                                                                                                                     |
+| port      | Required. The port that you want this plugin to listen on. Choose a number above 1024.                                                                                                                                                                                         |
+| serial    | Optional. Assigns a serial number. Not really required but I would advise in making up some arbitrary string.                                                                                                                                                                  |
+| repeater  | Optional. Whenever the http server setup by this plugin is hit, it will also make a request to each entry in this array. I am using it to turn on a screen in my hallway. See [this](https://nodejs.org/api/http.html#http_http_get_options_callback) for further information. |
+| bind_ip   | Optional. If you know what this is, you'll know what to do with it.                                                                                                                                                                                                            |

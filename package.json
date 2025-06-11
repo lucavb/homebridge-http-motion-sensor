@@ -5,13 +5,18 @@
     "main": "dist/index.js",
     "scripts": {
         "build": "npx tsc",
-        "test": "npx jest",
-        "clean": "rm -rf dist",
         "cbuild": "npm run clean && npm run build",
-        "format": "npx eslint --fix src/**/*.ts",
-        "prepare": "npm run cbuild"
+        "clean": "rm -rf dist",
+        "format:check": "npx prettier --check .",
+        "format": "npx prettier --write .",
+        "lint:fix": "npx eslint --fix src/**/*.ts",
+        "lint": "npx eslint src/**/*.ts",
+        "prepare": "npm run cbuild",
+        "test": "npx jest"
     },
-    "files": ["dist"],
+    "files": [
+        "dist"
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/lucavb/homebridge-http-motion-sensor.git"
@@ -42,8 +47,9 @@
         "@typescript-eslint/parser": "^2.19.2",
         "eslint": "^6.8.0",
         "eslint-config-google": "^0.14.0",
-        "typescript": "^3.9.7",
         "hap-nodejs": "^0.7.7",
-        "homebridge": "^1.1.1"
+        "homebridge": "^1.1.1",
+        "prettier": "3.5.3",
+        "typescript": "^3.9.7"
     }
 }
