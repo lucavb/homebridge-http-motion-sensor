@@ -1,74 +1,164 @@
 {
-    "pluginAlias": "http-motion-sensor",
-    "pluginType": "accessory",
+    "pluginAlias": "HttpMotionSensorPlatform",
+    "pluginType": "platform",
     "singular": false,
     "schema": {
         "type": "object",
         "properties": {
             "name": {
-                "title": "Name",
+                "title": "Platform Name",
                 "type": "string",
+                "default": "HTTP Motion Sensor Platform",
                 "required": true
             },
-            "port": {
-                "title": "HTTP Port",
-                "type": "number",
-                "required": true
-            },
-            "serial": {
-                "title": "Serial #",
-                "description": "displayed in HomeKit",
-                "type": "string",
-                "required": false
-            },
-            "bind_ip": {
-                "title": "Bind IP",
-                "description": "bind to a specific IP",
-                "type": "string",
-                "required": false
-            },
-            "repeater": {
-                "title": "Repeater",
+            "sensors": {
+                "title": "Motion Sensors",
                 "type": "array",
                 "items": {
                     "type": "object",
                     "properties": {
-                        "host": {
-                            "name": "Host",
-                            "type": "string"
+                        "name": {
+                            "title": "Sensor Name",
+                            "type": "string",
+                            "placeholder": "e.g. Hallway Motion Sensor",
+                            "required": true
                         },
                         "port": {
-                            "name": "Port",
-                            "type": "number"
+                            "title": "HTTP Port",
+                            "type": "integer",
+                            "minimum": 1024,
+                            "maximum": 65535,
+                            "placeholder": "e.g. 18089",
+                            "required": true
                         },
-                        "path": {
-                            "name": "Path",
-                            "type": "string"
+                        "model": {
+                            "title": "Model",
+                            "type": "string",
+                            "placeholder": "e.g. ESP8266 Motion Sensor"
                         },
-                        "auth": {
-                            "name": "Auth",
-                            "description": "username:password",
-                            "type": "string"
+                        "serial": {
+                            "title": "Serial Number",
+                            "type": "string",
+                            "placeholder": "e.g. E642011E3ECB"
+                        },
+                        "bind_ip": {
+                            "title": "Bind IP Address",
+                            "type": "string",
+                            "placeholder": "0.0.0.0",
+                            "format": "ipv4"
+                        },
+                        "repeater": {
+                            "title": "Repeater Endpoints",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "host": {
+                                        "title": "Host",
+                                        "type": "string",
+                                        "placeholder": "192.168.1.100",
+                                        "required": true
+                                    },
+                                    "port": {
+                                        "title": "Port",
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 65535,
+                                        "placeholder": "80",
+                                        "required": true
+                                    },
+                                    "path": {
+                                        "title": "Path",
+                                        "type": "string",
+                                        "placeholder": "/api/trigger",
+                                        "required": true
+                                    },
+                                    "auth": {
+                                        "title": "Authorization Header",
+                                        "type": "string",
+                                        "placeholder": "Bearer token123"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     },
-    "form": [
-        "name",
-        "port",
-        "serial",
-        "bind_ip",
+    "form": null,
+    "display": null,
+    "layout": [
         {
-            "type": "section",
-            "expandable": true,
-            "expanded": false,
-            "title": "Repeaters",
+            "type": "flex",
+            "flex-flow": "row wrap",
+            "items": ["name"]
+        },
+        {
+            "key": "sensors",
+            "type": "array",
+            "title": "Motion Sensors",
+            "description": "Configure one or more HTTP motion sensors",
             "items": [
                 {
-                    "key": "repeater",
-                    "items": ["repeater[].host", "repeater[].port", "repeater[].path", "repeater[].auth"]
+                    "type": "flex",
+                    "flex-flow": "row wrap",
+                    "items": [
+                        {
+                            "key": "sensors[].name",
+                            "flex": "1 1 50%"
+                        },
+                        {
+                            "key": "sensors[].port",
+                            "flex": "1 1 50%"
+                        }
+                    ]
+                },
+                {
+                    "type": "flex",
+                    "flex-flow": "row wrap",
+                    "items": [
+                        {
+                            "key": "sensors[].model",
+                            "flex": "1 1 50%"
+                        },
+                        {
+                            "key": "sensors[].serial",
+                            "flex": "1 1 50%"
+                        }
+                    ]
+                },
+                {
+                    "key": "sensors[].bind_ip"
+                },
+                {
+                    "key": "sensors[].repeater",
+                    "type": "array",
+                    "title": "Repeater Endpoints",
+                    "description": "Optional: Make additional HTTP requests when motion is detected",
+                    "items": [
+                        {
+                            "type": "flex",
+                            "flex-flow": "row wrap",
+                            "items": [
+                                {
+                                    "key": "sensors[].repeater[].host",
+                                    "flex": "1 1 40%"
+                                },
+                                {
+                                    "key": "sensors[].repeater[].port",
+                                    "flex": "1 1 30%"
+                                },
+                                {
+                                    "key": "sensors[].repeater[].path",
+                                    "flex": "1 1 30%"
+                                }
+                            ]
+                        },
+                        {
+                            "key": "sensors[].repeater[].auth"
+                        }
+                    ]
                 }
             ]
         }

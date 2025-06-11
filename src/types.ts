@@ -1,4 +1,3 @@
-import { IValidationConfig } from 'homebridge-ts-helper/dist/configValidator';
 import { AccessoryConfig } from 'homebridge';
 
 export interface HomebridgeHttpMotionSensorRepeaterEntry {
@@ -15,16 +14,3 @@ export interface HomebridgeHttpMotionSensorConfig extends AccessoryConfig {
     bind_ip?: string;
     repeater?: HomebridgeHttpMotionSensorRepeaterEntry[];
 }
-
-export const validationConfig: IValidationConfig = {
-    rules: [
-        {
-            key: 'port',
-            regex: /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/,
-        },
-        {
-            key: 'name',
-            required: true,
-        },
-    ],
-};
