@@ -28,6 +28,7 @@ This version has been completely modernized to use the latest Homebridge APIs an
 ### Homebridge v2.0 Compatibility
 
 ✅ This plugin is **fully compatible** with both Homebridge v1.x and v2.0:
+
 - Uses modern HAP-NodeJS APIs (no deprecated patterns)
 - Follows current Homebridge platform plugin best practices
 - Tested with Homebridge v2.0 beta releases
@@ -167,6 +168,7 @@ npm test
 ```
 
 This will:
+
 - Build the plugin
 - Start a test Homebridge instance
 - Create two test motion sensors on ports 18089 and 18090
@@ -205,12 +207,14 @@ npm run test:quick
 ### Test Configuration
 
 Tests are located in the `tests/` directory:
+
 - `tests/test.sh` - Comprehensive automated test suite
-- `tests/manual-test.sh` - Interactive testing script  
+- `tests/manual-test.sh` - Interactive testing script
 - `tests/test-config.json` - Test configuration with two sensors
 - `tests/README.md` - Detailed testing documentation
 
 The test configuration includes:
+
 - **Test Motion Sensor 1**: Port 18089, basic configuration
 - **Test Motion Sensor 2**: Port 18090, with repeater functionality to httpbin.org
 
@@ -221,7 +225,7 @@ The test configuration includes:
 npm test                    # Interactive mode
 npm run test:ci            # CI mode (no prompts)
 
-# Development testing  
+# Development testing
 npm run test:quick         # Quick start
 npm run test:manual        # Interactive testing
 npm run test:dev          # Use existing .tmp
