@@ -37,6 +37,7 @@ const plugin = (api: API) => {
 };
 
 class HttpMotionSensor {
+  name: string;
   log: Logging;
   api: API;
   config: MotionSensorConfig;
@@ -45,10 +46,15 @@ class HttpMotionSensor {
   timeout: any;
   server?: Server;
   bindIP?: string;
+  port?: number;
   homebridgeService: any;
+  serial: string;
 
   constructor(log: Logging, config: MotionSensorConfig, api: API) {
     this.log = log;
+    this.name = config.name;
+    this.port = config.port;
+    this.serial = config.serial || SERIAL_NUMBER;
     this.config = config;
     this.api = api;
     this.bindIP = config.bind_ip ?? '0.0.0.0';
@@ -61,15 +67,15 @@ class HttpMotionSensor {
       }));
     });
 
-    this.server.listen(this.config.port!, this.bindIP, () => {
-      this.log(`This device can now be reached under http://${this.bindIP}:${this.config.port}`);
+    this.server.listen(this.port!, this.bindIP, () => {
+      this.log(`This device can now be reached under http://${this.bindIP}:${this.port}`);
     });
 
     this.api.on('shutdown', () => {
-            this.server!.close();
+      this.server!.close();
     });
 
-    this.homebridgeService = new Service.MotionSensor(this.config.name);
+    this.homebridgeService = new Service.MotionSensor(this.name);
   }
 
   getServices() {
@@ -78,7 +84,7 @@ class HttpMotionSensor {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, MANUFACTURER)
       .setCharacteristic(Characteristic.Model, MODEL)
-      .setCharacteristic(Characteristic.SerialNumber, this.config.serial ? this.config.serial : SERIAL_NUMBER)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
       .setCharacteristic(Characteristic.FirmwareRevision, FIRMWARE_REVISION);
 
     this.homebridgeService
