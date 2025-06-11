@@ -1,17 +1,20 @@
 import {
-    AccessoryConfig,
     AccessoryPlugin,
     API,
     CharacteristicEventTypes,
     CharacteristicGetCallback,
     HAP,
     Logging,
-    PlatformConfig,
     Service,
     StaticPlatformPlugin,
 } from 'homebridge';
-import { createServer, get, Server, RequestOptions } from 'http';
-import { HomebridgeHttpMotionSensorConfig } from './types';
+import { createServer, get, RequestOptions, Server } from 'http';
+import {
+    HomebridgeHttpMotionSensorConfig,
+    HttpMotionSensorPlatformConfig,
+    platformConfigSchema,
+    sensorConfigSchema,
+} from './schemas';
 
 const PLATFORM_NAME = 'HttpMotionSensorPlatform';
 const PLUGIN_NAME = 'homebridge-http-motion-sensor';
@@ -25,21 +28,25 @@ export = (api: API): void => {
 
 class HttpMotionSensorPlatform implements StaticPlatformPlugin {
     private readonly log: Logging;
-    private readonly config: PlatformConfig;
+    private readonly config: HttpMotionSensorPlatformConfig;
     private readonly api: API;
 
-    constructor(log: Logging, config: PlatformConfig, api: API) {
+    constructor(log: Logging, config: unknown, api: API) {
         this.log = log;
-        this.config = config;
         this.api = api;
 
         this.log.info('Initializing HttpMotionSensorPlatform');
 
-        if (!this.config.sensors || !Array.isArray(this.config.sensors)) {
-            this.log.error('No sensors configured. Please add sensors array to platform config.');
-            return;
+        const result = platformConfigSchema.safeParse(config);
+        if (!result.success) {
+            this.log.error('Invalid platform configuration:');
+            result.error.issues.forEach((issue) => {
+                this.log.error(`${issue.path.join('.')}: ${issue.message}`);
+            });
+            throw new Error('Platform configuration validation failed');
         }
 
+        this.config = result.data;
         this.log.info(`Found ${this.config.sensors.length} motion sensor(s) to initialize`);
     }
 
@@ -68,25 +75,26 @@ class HttpMotionSensorAccessory implements AccessoryPlugin {
     private motionDetected: boolean = false;
     private timeout: ReturnType<typeof setTimeout> | null = null;
 
-    private motionSensorService: Service;
-    private informationService: Service;
+    private readonly motionSensorService: Service;
+    private readonly informationService: Service;
 
     private server?: Server;
     private readonly bindIP: string;
 
-    constructor(log: Logging, config: AccessoryConfig, api: API) {
+    constructor(log: Logging, config: unknown, api: API) {
         this.log = log;
-        this.config = config as HomebridgeHttpMotionSensorConfig;
         this.api = api;
 
-        if (!this.config.name) {
-            throw new Error('Missing required config: name');
+        const result = sensorConfigSchema.safeParse(config);
+        if (!result.success) {
+            this.log.error('Invalid sensor configuration:');
+            result.error.issues.forEach((issue) => {
+                this.log.error(`${issue.path.join('.')}: ${issue.message}`);
+            });
+            throw new Error('Sensor configuration validation failed');
         }
 
-        if (!this.config.port) {
-            throw new Error('Missing required config: port');
-        }
-
+        this.config = result.data;
         this.bindIP = this.config.bind_ip ?? '0.0.0.0';
 
         this.informationService = new hap.Service.AccessoryInformation()

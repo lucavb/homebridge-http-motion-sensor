@@ -44,7 +44,6 @@ export default tseslint.config(
             'prefer-promise-reject-errors': 'error',
             'space-before-function-paren': ['error', { anonymous: 'never', asyncArrow: 'always', named: 'never' }],
             'spaced-comment': ['error', 'always'],
-            camelcase: 'error',
             eqeqeq: 'error',
             indent: ['error', 4, { SwitchCase: 1 }],
             quotes: ['error', 'single'],
