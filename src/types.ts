@@ -12,7 +12,6 @@ export interface HomebridgeHttpMotionSensorConfig extends AccessoryConfig {
     port?: number;
     model?: string;
     serial?: string;
-    // eslint-disable-next-line camelcase
     bind_ip?: string;
     repeater?: HomebridgeHttpMotionSensorRepeaterEntry[];
 }

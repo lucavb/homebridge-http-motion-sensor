@@ -1,5 +1,5 @@
 import { Characteristic, CharacteristicEventTypes, CharacteristicGetCallback } from 'hap-nodejs';
-import { Server, get, createServer } from 'http';
+import { createServer, get, Server } from 'http';
 import { API, Logging } from 'homebridge';
 import { HomebridgeAccessory } from 'homebridge-ts-helper';
 import { HomebridgeHttpMotionSensorConfig, validationConfig } from './types';
@@ -16,7 +16,7 @@ export default (homebridge: API): void => {
 class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
     private motionDetected: boolean = false;
 
-    private timeout: NodeJS.Timeout | null = null;
+    private timeout: ReturnType<typeof setTimeout> | null = null;
 
     private motionSensorService!: MotionSensor;
 
@@ -53,7 +53,7 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
         });
     }
 
-    private prepareServices() {
+    private prepareServices(): void {
         this.motionSensorService = new MotionSensorConstructor(this.config.name);
         this.motionSensorService
             .getCharacteristic(Characteristic.MotionDetected)
@@ -61,7 +61,7 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
         this.services.push(this.motionSensorService);
     }
 
-    private httpHandler() {
+    private httpHandler(): void {
         if (this.config.repeater) {
             for (const repeater of this.config.repeater) {
                 get(repeater).on('error', (e) => {
@@ -84,7 +84,7 @@ class HomebridgeHttpMotionSensor extends HomebridgeAccessory {
         }, 11 * 1000);
     }
 
-    private getState(callback: CharacteristicGetCallback) {
+    private getState(callback: CharacteristicGetCallback): void {
         callback(null, this.motionDetected);
     }
 }
