@@ -1,0 +1,36 @@
+{
+    "bridge": {
+        "name": "Homebridge Test",
+        "username": "CC:22:3D:E3:CE:30",
+        "port": 51826,
+        "pin": "031-45-154"
+    },
+    "accessories": [],
+    "platforms": [
+        {
+            "platform": "HttpMotionSensorPlatform",
+            "name": "HTTP Motion Sensor Test Platform",
+            "sensors": [
+                {
+                    "name": "Test Motion Sensor 1",
+                    "port": 18089,
+                    "model": "Test ESP8266",
+                    "serial": "TEST-001"
+                },
+                {
+                    "name": "Test Motion Sensor 2",
+                    "port": 18090,
+                    "model": "Test ESP8266",
+                    "serial": "TEST-002",
+                    "repeater": [
+                        {
+                            "host": "httpbin.org",
+                            "port": 80,
+                            "path": "/get?test=repeater"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

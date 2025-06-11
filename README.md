@@ -143,3 +143,52 @@ This plugin now uses the **platform plugin** architecture for better flexibility
 - **Future-Proof**: Follows modern Homebridge best practices
 - **Enhanced Configuration**: Rich configuration UI with validation
 - **Improved Logging**: Better debugging and monitoring capabilities
+
+## Testing
+
+### Automated Testing
+
+Run the full automated test suite:
+
+```bash
+npm test
+```
+
+This will:
+- Build the plugin
+- Link it locally to your npm environment
+- Start a test Homebridge instance
+- Create two test motion sensors on ports 18089 and 18090
+- Test motion detection and reset functionality
+- Show logs and optionally keep Homebridge running for manual testing
+
+### Manual Testing
+
+For quick development testing when you already have Homebridge running:
+
+```bash
+./manual-test.sh [port]
+```
+
+Example:
+```bash
+./manual-test.sh 18089
+```
+
+This will test the HTTP endpoints and motion detection cycle.
+
+### Prerequisites for Testing
+
+Make sure you have these installed:
+- Node.js
+- Homebridge (`npm install -g homebridge`)
+- curl
+- netcat (nc)
+
+### Test Configuration
+
+The test uses a configuration with two motion sensors:
+- **Test Motion Sensor 1**: Port 18089, basic configuration
+- **Test Motion Sensor 2**: Port 18090, with repeater functionality
+
+You can modify `test-config.json` to test different configurations.

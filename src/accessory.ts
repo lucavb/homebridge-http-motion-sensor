@@ -11,6 +11,7 @@ import { createServer, get, RequestOptions, Server } from 'http';
 import { HomebridgeHttpMotionSensorConfig, sensorConfigSchema } from './schemas';
 
 export class HttpMotionSensorAccessory implements AccessoryPlugin {
+    public readonly name: string;
     private readonly config: HomebridgeHttpMotionSensorConfig;
 
     private motionDetected: boolean = false;
@@ -38,6 +39,7 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
         }
 
         this.config = result.data;
+        this.name = this.config.name;
         this.bindIP = this.config.bind_ip ?? '0.0.0.0';
 
         this.informationService = new hap.Service.AccessoryInformation()

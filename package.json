@@ -3,17 +3,19 @@
     "version": "1.2.2",
     "description": "Homebridge plugin for a remote motion sensor based on http",
     "main": "dist/index.js",
-    "type": "module",
     "scripts": {
-        "build": "npx tsc",
-        "cbuild": "npm run clean && npm run build",
+        "build": "tsc",
         "clean": "rm -rf dist",
-        "format:check": "npx prettier --check .",
-        "format": "npx prettier --write .",
-        "lint:fix": "npx eslint --fix src/**/*.ts",
-        "lint": "npx eslint src/**/*.ts",
-        "prepare": "npm run cbuild",
-        "test": "npx jest"
+        "lint": "eslint src --ext .ts",
+        "lint:fix": "eslint src --ext .ts --fix",
+        "prepublishOnly": "npm run clean && npm run build",
+        "test": "./tests/test.sh",
+        "test:ci": "./tests/test.sh --ci",
+        "test:clean": "rm -rf .tmp config",
+        "test:dev": "npm run build && homebridge -D -U .tmp -P .",
+        "test:functional": "./tests/test.sh",
+        "test:manual": "./tests/manual-test.sh",
+        "test:quick": "npm run build && mkdir -p .tmp && cp tests/test-config.json .tmp/config.json && homebridge -D -U .tmp -P ."
     },
     "files": [
         "dist"

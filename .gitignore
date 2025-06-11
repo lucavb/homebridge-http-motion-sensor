@@ -38,3 +38,9 @@ jspm_packages
 
 dist
 .idea
+
+# Test files
+.tmp/
+config/
+manual-test/
+debug-test/
