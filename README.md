@@ -2,9 +2,17 @@
 
 [![CI](https://github.com/lucavb/homebridge-http-motion-sensor/actions/workflows/ci.yml/badge.svg)](https://github.com/lucavb/homebridge-http-motion-sensor/actions/workflows/ci.yml)
 
+> **⚠️ BREAKING CHANGE NOTICE**  
+> **Version 2.0.0+ requires configuration migration!**
+>
+> This plugin has been converted from an **accessory plugin** to a **platform plugin**. If you're upgrading from v1.x, you **MUST** update your Homebridge configuration. See the [Migration Guide](#migration-from-v1x) below.
+>
+> **Old**: Configured in `"accessories"` array  
+> **New**: Configured in `"platforms"` array
+
 This plugin offers you a motion sensor that can be triggered via an HTTP request. This can be used in conjunction with an ESP8266 for instance or an Arduino with an ethernet shield. I will add an example Arduino script in the future.
 
-## What's New in v1.3.0
+## What's New in v2.0.0
 
 This version has been completely modernized to use the latest Homebridge APIs and best practices, following the [official Homebridge documentation](https://developers.homebridge.io/#/api/platform-plugins):
 
@@ -38,11 +46,17 @@ This version has been completely modernized to use the latest Homebridge APIs an
 
 Users will see a **green checkmark** in the Homebridge UI readiness check when using this plugin with Homebridge v2.0.
 
-### Migration from v1.2.x
+### Migration from v1.x
 
-If you're upgrading from an older version, you'll need to update your configuration from accessory format to platform format:
+⚠️ **REQUIRED CONFIGURATION CHANGE**: This plugin now uses platform configuration instead of accessory configuration.
 
-#### Old Configuration (Accessory):
+**Follow these steps to migrate:**
+
+1. **Remove the old accessory configuration** from your `"accessories"` array
+2. **Add the new platform configuration** to your `"platforms"` array
+3. **Restart Homebridge**
+
+#### Old Configuration (Accessory) - ❌ Remove This:
 
 ```json
 {
@@ -56,7 +70,7 @@ If you're upgrading from an older version, you'll need to update your configurat
 }
 ```
 
-#### New Configuration (Platform):
+#### New Configuration (Platform) - ✅ Add This:
 
 ```json
 {
@@ -74,6 +88,13 @@ If you're upgrading from an older version, you'll need to update your configurat
     ]
 }
 ```
+
+**🎉 Benefits of the new platform configuration:**
+
+- Support for multiple motion sensors in one configuration
+- Better resource management and performance
+- Enhanced configuration UI with validation
+- Future-proof architecture following Homebridge best practices
 
 ## Installation
 
@@ -197,41 +218,4 @@ For quick start during development:
 
 ```bash
 npm run test:quick
-```
-
-### Prerequisites for Testing
-
-- **Node.js 20.15.1 or 22+** (Node.js 18 not supported)
-- **Homebridge** (`npm install -g homebridge`)
-- **curl** (for HTTP testing)
-- **netcat (nc)** (for port checking)
-
-### Test Configuration
-
-Tests are located in the `tests/` directory:
-
-- `tests/test.sh` - Comprehensive automated test suite
-- `tests/manual-test.sh` - Interactive testing script
-- `tests/test-config.json` - Test configuration with two sensors
-- `tests/README.md` - Detailed testing documentation
-
-The test configuration includes:
-
-- **Test Motion Sensor 1**: Port 18089, basic configuration
-- **Test Motion Sensor 2**: Port 18090, with repeater functionality to httpbin.org
-
-### Test Commands
-
-```bash
-# Full test suite
-npm test                    # Interactive mode
-npm run test:ci            # CI mode (no prompts)
-
-# Development testing
-npm run test:quick         # Quick start
-npm run test:manual        # Interactive testing
-npm run test:dev          # Use existing .tmp
-
-# Maintenance
-npm run test:clean        # Clean up temp files
 ```
