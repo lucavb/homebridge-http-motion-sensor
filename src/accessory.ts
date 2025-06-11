@@ -91,7 +91,7 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
                     };
                 }
 
-                get(url, (res) => {
+                get(url, () => {
                     this.log.debug(`Repeater request to ${url} successful`);
                 }).on('error', (error) => {
                     this.log.warn(`Repeater request to ${url} failed: ${error.message}`);
