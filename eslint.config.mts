@@ -24,7 +24,15 @@ export default tseslint.config(
         rules: {
             '@typescript-eslint/explicit-function-return-type': 'warn',
             '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/no-unused-vars': ['error', { args: 'none' }],
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    args: 'all',
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    ignoreRestSiblings: true,
+                },
+            ],
             'comma-dangle': ['error', 'always-multiline'],
             'guard-for-in': 'error',
             'new-cap': 'error',
