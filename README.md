@@ -2,6 +2,12 @@
 
 [![CI](https://github.com/lucavb/homebridge-http-motion-sensor/actions/workflows/ci.yml/badge.svg)](https://github.com/lucavb/homebridge-http-motion-sensor/actions/workflows/ci.yml)
 
+<div align="center">
+  <img src="homebridge-http-motion-sensor.jpg" alt="Homebridge HTTP Motion Sensor" width="400">
+  <br>
+  <em>HTTP-triggered motion sensor for your smart home</em>
+</div>
+
 > **⚠️ BREAKING CHANGE NOTICE**  
 > **Version 2.0.0+ requires configuration migration!**
 >

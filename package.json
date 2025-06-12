@@ -26,8 +26,9 @@
         "test:quick": "npm run build && mkdir -p .tmp && cp tests/test-config.json .tmp/config.json && homebridge -D -U .tmp -P ."
     },
     "files": [
+        "config.schema.json",
         "dist",
-        "config.schema.json"
+        "homebridge-http-motion-sensor.jpg"
     ],
     "repository": {
         "type": "git",
