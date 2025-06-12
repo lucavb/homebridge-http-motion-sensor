@@ -13,6 +13,8 @@
         "cq:prettier:fix": "prettier --write src/**/*.ts",
         "cq:typecheck": "tsc --noEmit",
         "prepublishOnly": "npm run clean && npm run build",
+        "release": "semantic-release",
+        "release:dry-run": "semantic-release --dry-run",
         "test": "./tests/test.sh",
         "test:ci": "./tests/test.sh --ci",
         "test:clean": "rm -rf .tmp config",
@@ -28,6 +30,11 @@
     "repository": {
         "type": "git",
         "url": "git+https://github.com/lucavb/homebridge-http-motion-sensor.git"
+    },
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org/",
+        "provenance": true
     },
     "keywords": [
         "homebridge-plugin",
@@ -48,13 +55,21 @@
     },
     "devDependencies": {
         "@eslint/js": "9.28.0",
+        "@semantic-release/changelog": "6.0.3",
+        "@semantic-release/commit-analyzer": "13.0.1",
+        "@semantic-release/git": "10.0.1",
+        "@semantic-release/github": "11.0.3",
+        "@semantic-release/npm": "12.0.1",
+        "@semantic-release/release-notes-generator": "14.0.3",
         "@types/node": "22.15.31",
+        "conventional-changelog-conventionalcommits": "8.0.0",
         "eslint": "9.28.0",
         "globals": "16.2.0",
         "hap-nodejs": "1.2.0",
         "homebridge": "1.10.0",
         "jiti": "2.4.2",
         "prettier": "3.5.3",
+        "semantic-release": "24.2.5",
         "typescript": "5.8.3",
         "typescript-eslint": "8.34.0"
     },
