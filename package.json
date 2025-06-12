@@ -26,7 +26,11 @@
         "url": "git+https://github.com/lucavb/homebridge-http-motion-sensor.git"
     },
     "license": "GPL-3.0",
-    "author": "Luca Becker <luca.becker@sunbury.xyz> (https://sunbury.xyz/)",
+    "author": {
+        "name": "Luca Becker",
+        "email": "hello@luca-becker.me",
+        "url": "https://luca-becker.me"
+    },
     "sideEffects": false,
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
