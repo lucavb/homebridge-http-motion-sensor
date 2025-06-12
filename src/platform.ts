@@ -1,5 +1,5 @@
 import { AccessoryPlugin, API, Logging, StaticPlatformPlugin } from 'homebridge';
-import { HttpMotionSensorPlatformConfig, platformConfigSchema } from './schemas';
+import { HomebridgeHttpMotionSensorConfig, HttpMotionSensorPlatformConfig, platformConfigSchema } from './schemas';
 import { HttpMotionSensorAccessory } from './accessory';
 
 export class HttpMotionSensorPlatform implements StaticPlatformPlugin {
@@ -22,13 +22,13 @@ export class HttpMotionSensorPlatform implements StaticPlatformPlugin {
         }
 
         this.config = result.data;
-        this.log.info(`Found ${this.config.sensors.length} motion sensor(s) to initialize`);
+        this.log.info(`Found ${this.sensors.length} motion sensor(s) to initialize`);
     }
 
     accessories(callback: (foundAccessories: AccessoryPlugin[]) => void): void {
         const accessories: AccessoryPlugin[] = [];
 
-        for (const sensorConfig of this.config.sensors) {
+        for (const sensorConfig of this.sensors) {
             try {
                 const accessory = new HttpMotionSensorAccessory(this.log, sensorConfig, this.api, this.api.hap);
                 accessories.push(accessory);
@@ -39,5 +39,9 @@ export class HttpMotionSensorPlatform implements StaticPlatformPlugin {
         }
 
         callback(accessories);
+    }
+
+    private get sensors(): HomebridgeHttpMotionSensorConfig[] {
+        return this.config.sensors ?? [];
     }
 }
