@@ -2,21 +2,55 @@
     "name": "homebridge-http-motion-sensor",
     "version": "2.0.1",
     "description": "Homebridge plugin for a remote motion sensor based on http",
+    "keywords": [
+        "arduino",
+        "automation",
+        "esp8266",
+        "homebridge",
+        "homebridge-plugin",
+        "homekit",
+        "http",
+        "iot",
+        "motion",
+        "motion-sensor",
+        "motionsensor",
+        "sensor",
+        "smart-home"
+    ],
+    "homepage": "https://github.com/lucavb/homebridge-http-motion-sensor#readme",
+    "bugs": {
+        "url": "https://github.com/lucavb/homebridge-http-motion-sensor/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/lucavb/homebridge-http-motion-sensor.git"
+    },
+    "license": "GPL-3.0",
+    "author": "Luca Becker <luca.becker@sunbury.xyz> (https://sunbury.xyz/)",
+    "sideEffects": false,
     "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "config.schema.json",
+        "dist",
+        "homebridge-http-motion-sensor.jpg"
+    ],
     "scripts": {
-        "build": "tsc",
+        "build": "npm run clean && tsc",
+        "build:watch": "tsc --watch",
         "clean": "rm -rf dist",
         "commitlint": "commitlint --edit --last",
-        "cq": "npm run cq:eslint && npm run cq:prettier && npm run cq:typecheck",
+        "cq": "npm run cq:typecheck && npm run cq:eslint && npm run cq:prettier",
         "cq:eslint": "eslint src --ext .ts",
         "cq:eslint:fix": "eslint src --ext .ts --fix",
         "cq:prettier": "prettier --check src/**/*.ts",
         "cq:prettier:fix": "prettier --write src/**/*.ts",
         "cq:typecheck": "tsc --noEmit",
         "prepare": "husky",
-        "prepublishOnly": "npm run clean && npm run build",
+        "prepublishOnly": "npm run build",
         "release": "semantic-release",
         "release:dry-run": "semantic-release --dry-run",
+        "start": "npm run build && homebridge -D -U .tmp -P .",
         "test": "./tests/test.sh",
         "test:ci": "./tests/test.sh --ci",
         "test:clean": "rm -rf .tmp config",
@@ -25,36 +59,8 @@
         "test:manual": "./tests/manual-test.sh",
         "test:quick": "npm run build && mkdir -p .tmp && cp tests/test-config.json .tmp/config.json && homebridge -D -U .tmp -P ."
     },
-    "files": [
-        "config.schema.json",
-        "dist",
-        "homebridge-http-motion-sensor.jpg"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/lucavb/homebridge-http-motion-sensor.git"
-    },
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/",
-        "provenance": true
-    },
-    "keywords": [
-        "homebridge-plugin",
-        "homebridge",
-        "homekit",
-        "motionsensor",
-        "motion"
-    ],
-    "author": "Luca Becker <luca.becker@sunbury.xyz> (https://sunbury.xyz/)",
-    "license": "GPL-3.0",
-    "bugs": {
-        "url": "https://github.com/lucavb/homebridge-http-motion-sensor/issues"
-    },
-    "homepage": "https://github.com/lucavb/homebridge-http-motion-sensor#readme",
-    "engines": {
-        "node": "^20.15.1 || ^22",
-        "homebridge": "^1.6.0 || ^2.0.0-beta.0"
+    "dependencies": {
+        "zod": "3.25.61"
     },
     "devDependencies": {
         "@commitlint/cli": "19.8.1",
@@ -80,7 +86,16 @@
         "typescript": "5.8.3",
         "typescript-eslint": "8.34.0"
     },
-    "dependencies": {
-        "zod": "3.25.61"
+    "peerDependencies": {
+        "homebridge": "^1.6.0 || ^2.0.0-beta.0"
+    },
+    "engines": {
+        "homebridge": "^1.6.0 || ^2.0.0-beta.0",
+        "node": "^20.15.1 || ^22"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true,
+        "registry": "https://registry.npmjs.org/"
     }
 }
