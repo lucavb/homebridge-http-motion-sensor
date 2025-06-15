@@ -64,7 +64,7 @@
         "test:quick": "npm run build && mkdir -p .tmp && cp tests/test-config.json .tmp/config.json && homebridge -D -U .tmp -P ."
     },
     "dependencies": {
-        "zod": "3.25.63"
+        "zod": "3.25.64"
     },
     "devDependencies": {
         "@commitlint/cli": "19.8.1",
