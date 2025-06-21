@@ -1,0 +1,106 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Homebridge HTTP Motion Sensor Project Rules
+
+## Project Overview
+- **Purpose**: Homebridge platform plugin for HTTP-triggered motion sensors
+- **Architecture**: TypeScript-based Homebridge platform plugin with multiple sensor support  
+- **Tech Stack**: TypeScript, Node.js, Homebridge API, HAP-NodeJS, Zod validation
+- **Target**: IoT devices (ESP8266, Arduino) integration with HomeKit
+
+## Homebridge Plugin Development Standards
+
+### Platform Plugin Architecture
+- Use platform plugin pattern (not accessory plugin) following Homebridge v2.0 best practices
+- Register platform in `src/index.ts` using `api.registerPlatform()`
+- Implement `StaticPlatformPlugin` interface in platform class
+- Support multiple accessories per platform instance
+
+### TypeScript Patterns
+- Use strict TypeScript configuration with ES6 target
+- Export using `export =` syntax for Homebridge compatibility
+- Implement proper interfaces for all plugin components
+- Use Zod for configuration validation and type safety
+
+### Homebridge API Usage
+- Use modern HAP-NodeJS APIs (avoid deprecated patterns)
+- Implement proper service and characteristic handling
+- Follow Homebridge v2.0 compatibility guidelines
+- Use proper logging via platform.log methods
+
+### Configuration Management
+- Define JSON schema in `config.schema.json` for Homebridge UI
+- Use Zod schemas for runtime validation in `src/schemas.ts`
+- Support both single and multiple sensor configurations
+- Implement proper error handling for invalid configurations
+
+## Code Quality Standards
+
+### File Organization
+- `src/index.ts` - Plugin entry point and registration
+- `src/platform.ts` - Main platform implementation
+- `src/accessory.ts` - Individual sensor accessory logic
+- `src/schemas.ts` - Zod validation schemas
+- `config.schema.json` - JSON schema for Homebridge UI
+
+### Naming Conventions
+- Platform class: `HttpMotionSensorPlatform`
+- Accessory class: `HttpMotionSensorAccessory`  
+- Constants: UPPER_SNAKE_CASE
+- Variables/functions: camelCase
+- Types/interfaces: PascalCase
+
+### Error Handling
+- Use proper HTTP status codes for API endpoints
+- Implement graceful degradation for network failures
+- Log errors with appropriate severity levels
+- Validate all configuration inputs with Zod
+
+### Testing Requirements
+- Maintain functional tests in `tests/` directory
+- Test configuration validation and HTTP endpoints
+- Include CI/CD compatible test scripts
+- Support both development and CI testing modes
+
+## Development Workflow
+
+### Build Process
+- Use TypeScript compiler with declaration files
+- Output to `dist/` directory
+- Include proper npm scripts for build, clean, watch
+- Support prepublish builds
+
+### Code Quality Tools
+- ESLint with TypeScript support (eslint.config.mts)
+- Prettier for code formatting
+- Husky for git hooks
+- Commitlint for conventional commits
+
+### Testing Commands
+- `npm test` - Run full test suite
+- `npm run test:ci` - CI-compatible testing
+- `npm run test:quick` - Quick development testing
+- `npm run start` - Development server with test config
+
+## IoT Integration Guidelines
+
+### HTTP Server Implementation
+- Bind to configurable IP addresses and ports
+- Support motion detection via GET/POST endpoints
+- Implement proper request validation
+- Handle multiple concurrent sensor connections
+
+### ESP8266/Arduino Support
+- Provide example firmware in `esp8266/` directory
+- Support multiple microcontroller platforms
+- Include testing and compilation scripts
+- Document wiring and setup procedures
+
+### Network Security
+- Validate all incoming HTTP requests
+- Support optional authentication headers
+- Implement rate limiting for sensor endpoints
+- Log security-relevant events appropriately

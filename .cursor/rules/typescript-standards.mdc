@@ -1,0 +1,350 @@
+---
+description: 
+globs: *.ts
+alwaysApply: false
+---
+# TypeScript Development Standards
+
+## 🚨 ABSOLUTE FORBIDDEN: The 'any' Type
+
+### ❌ NEVER Use 'any'
+- **NEVER** use `any` type under any circumstances
+- **NEVER** use `any[]` for arrays
+- **NEVER** use `Record<string, any>` for objects
+- **NEVER** use `any` as function parameters or return types
+- **NEVER** use `any` to "quickly fix" TypeScript errors
+
+### ✅ ALWAYS Use Proper Types Instead
+
+#### Instead of `any`, use:
+```typescript
+// ❌ BAD - Using any
+function processData(data: any): any {
+    return data.someProperty;
+}
+
+// ✅ GOOD - Proper typing
+interface UserData {
+    id: string;
+    name: string;
+    email: string;
+}
+
+function processData(data: UserData): string {
+    return data.name;
+}
+```
+
+#### For Unknown Data Structure:
+```typescript
+// ❌ BAD
+const response: any = await fetch('/api/data');
+
+// ✅ GOOD - Use unknown and type guards
+const response: unknown = await fetch('/api/data');
+
+if (isValidUserData(response)) {
+    // Now TypeScript knows the type
+    console.log(response.name);
+}
+```
+
+## Zod Integration Patterns
+
+### Configuration Validation
+```typescript
+import { z } from 'zod';
+
+// Define Zod schema first
+const SensorConfigSchema = z.object({
+    name: z.string().min(1, 'Sensor name is required'),
+    port: z.number().int().min(1024).max(65535),
+    serial: z.string().optional(),
+    model: z.string().default('ESP8266 Motion Sensor'),
+    bind_ip: z.string().ip().default('0.0.0.0'),
+    repeater: z.array(z.object({
+        host: z.string().min(1),
+        port: z.number().int().min(1).max(65535),
+        path: z.string().startsWith('/'),
+        auth: z.string().optional()
+    })).optional()
+});
+
+// Extract TypeScript type from Zod schema
+type SensorConfig = z.infer<typeof SensorConfigSchema>;
+
+// Use in function signatures
+function createSensor(config: SensorConfig): HttpMotionSensorAccessory {
+    // TypeScript knows all the types!
+    return new HttpMotionSensorAccessory(config);
+}
+```
+
+### Input Validation with Proper Error Handling
+```typescript
+function validateSensorConfig(input: unknown): SensorConfig {
+    try {
+        return SensorConfigSchema.parse(input);
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            const errorMessages = error.errors.map(err => 
+                `${err.path.join('.')}: ${err.message}`
+            ).join(', ');
+            throw new Error(`Invalid sensor configuration: ${errorMessages}`);
+        }
+        throw error;
+    }
+}
+
+// Usage
+function setupSensor(rawConfig: unknown): void {
+    const config = validateSensorConfig(rawConfig); // Now properly typed!
+    // config is guaranteed to be SensorConfig type
+}
+```
+
+## Advanced TypeScript Patterns
+
+### Union Types Instead of Any
+```typescript
+// ❌ BAD
+interface ApiResponse {
+    data: any;
+    status: any;
+}
+
+// ✅ GOOD
+type ApiStatus = 'success' | 'error' | 'pending';
+type ApiData = UserData | ErrorData | null;
+
+interface ApiResponse {
+    data: ApiData;
+    status: ApiStatus;
+}
+```
+
+### Generic Types for Reusability
+```typescript
+// ❌ BAD
+function parseResponse(response: any): any {
+    return JSON.parse(response);
+}
+
+// ✅ GOOD
+function parseResponse<T>(response: string, schema: z.ZodSchema<T>): T {
+    const parsed: unknown = JSON.parse(response);
+    return schema.parse(parsed);
+}
+
+// Usage
+const userData = parseResponse(apiResponse, UserSchema);
+// userData is properly typed as User!
+```
+
+### Type Guards for Runtime Checking
+```typescript
+// Create type guards for complex validation
+function isValidMotionEvent(value: unknown): value is MotionEvent {
+    return typeof value === 'object' &&
+           value !== null &&
+           'timestamp' in value &&
+           'sensorId' in value &&
+           typeof (value as MotionEvent).timestamp === 'number';
+}
+
+// Use with unknown data
+function handleIncomingData(data: unknown): void {
+    if (isValidMotionEvent(data)) {
+        // TypeScript knows data is MotionEvent here
+        this.log.info(`Motion detected from sensor ${data.sensorId}`);
+    } else {
+        this.log.error('Invalid motion event data received');
+    }
+}
+```
+
+## Homebridge-Specific TypeScript Patterns
+
+### Platform Configuration Typing
+```typescript
+// Always use Zod + TypeScript together
+const PlatformConfigSchema = z.object({
+    platform: z.literal('HttpMotionSensorPlatform'),
+    name: z.string(),
+    sensors: z.array(SensorConfigSchema).min(1, 'At least one sensor required')
+});
+
+type PlatformConfig = z.infer<typeof PlatformConfigSchema>;
+
+// Platform class with proper typing
+export class HttpMotionSensorPlatform implements StaticPlatformPlugin {
+    constructor(
+        private readonly log: Logger,
+        private readonly config: PlatformConfig, // Properly typed!
+        private readonly api: API,
+    ) {
+        // config is now fully typed and validated
+    }
+}
+```
+
+### Service and Characteristic Typing
+```typescript
+// ❌ BAD
+setupMotionService(service: any): void {
+    service.getCharacteristic(this.platform.Characteristic.MotionDetected)
+        .onGet(this.getMotionDetected.bind(this));
+}
+
+// ✅ GOOD
+setupMotionService(service: Service): void {
+    service.getCharacteristic(this.platform.Characteristic.MotionDetected)
+        .onGet(this.getMotionDetected.bind(this));
+}
+
+// Proper return typing
+async getMotionDetected(): Promise<CharacteristicValue> {
+    return this.motionDetected;
+}
+```
+
+## Error Handling with Types
+
+### Custom Error Types
+```typescript
+// Define specific error types
+class ConfigurationError extends Error {
+    constructor(
+        message: string,
+        public readonly field: string,
+        public readonly value: unknown
+    ) {
+        super(message);
+        this.name = 'ConfigurationError';
+    }
+}
+
+class NetworkError extends Error {
+    constructor(
+        message: string,
+        public readonly statusCode: number,
+        public readonly endpoint: string
+    ) {
+        super(message);
+        this.name = 'NetworkError';
+    }
+}
+
+// Use in functions
+function validatePort(port: unknown): number {
+    const portSchema = z.number().int().min(1024).max(65535);
+    
+    try {
+        return portSchema.parse(port);
+    } catch (error) {
+        throw new ConfigurationError(
+            `Invalid port number: ${port}`,
+            'port',
+            port
+        );
+    }
+}
+```
+
+### Result Types for Better Error Handling
+```typescript
+// Define Result type for operations that can fail
+type Result<T, E = Error> = 
+    | { success: true; data: T }
+    | { success: false; error: E };
+
+async function startHttpServer(port: number): Promise<Result<Server, NetworkError>> {
+    try {
+        const server = await createServer(port);
+        return { success: true, data: server };
+    } catch (error) {
+        return { 
+            success: false, 
+            error: new NetworkError(`Failed to start server on port ${port}`, 500, `localhost:${port}`)
+        };
+    }
+}
+
+// Usage with proper type checking
+const serverResult = await startHttpServer(config.port);
+if (serverResult.success) {
+    this.log.info(`Server started on port ${config.port}`);
+    // serverResult.data is typed as Server
+} else {
+    this.log.error(`Server start failed: ${serverResult.error.message}`);
+    // serverResult.error is typed as NetworkError
+}
+```
+
+## Utility Types and Helpers
+
+### Creating Utility Types
+```typescript
+// Extract specific properties
+type SensorIdentifiers = Pick<SensorConfig, 'name' | 'serial'>;
+
+// Make some properties optional
+type PartialSensorConfig = Partial<Pick<SensorConfig, 'model' | 'bind_ip'>>;
+
+// Combine with required properties
+type SensorCreationInput = Pick<SensorConfig, 'name' | 'port'> & PartialSensorConfig;
+```
+
+### Type-Safe Event Handling
+```typescript
+// Define event types
+type MotionEvents = {
+    motion_detected: { sensorId: string; timestamp: number };
+    motion_cleared: { sensorId: string; timestamp: number };
+    sensor_error: { sensorId: string; error: string };
+};
+
+// Type-safe event emitter
+class TypedEventEmitter<T extends Record<string, unknown>> {
+    emit<K extends keyof T>(event: K, data: T[K]): void {
+        // Implementation
+    }
+    
+    on<K extends keyof T>(event: K, handler: (data: T[K]) => void): void {
+        // Implementation
+    }
+}
+
+// Usage
+const motionEmitter = new TypedEventEmitter<MotionEvents>();
+
+// Fully typed - TypeScript will catch errors!
+motionEmitter.emit('motion_detected', { 
+    sensorId: 'sensor-1', 
+    timestamp: Date.now() 
+});
+```
+
+## Testing with Types
+
+### Type-Safe Test Helpers
+```typescript
+// Create typed test fixtures
+function createMockSensorConfig(overrides?: Partial<SensorConfig>): SensorConfig {
+    const defaultConfig: SensorConfig = {
+        name: 'Test Sensor',
+        port: 18089,
+        model: 'Test Model',
+        bind_ip: '127.0.0.1'
+    };
+    
+    return { ...defaultConfig, ...overrides };
+}
+
+// Type-safe assertions
+function assertIsSensorConfig(value: unknown): asserts value is SensorConfig {
+    SensorConfigSchema.parse(value); // Will throw if invalid
+}
+```
+
+Remember: Every time you're tempted to use `any`, there's always a better TypeScript solution! 🎯

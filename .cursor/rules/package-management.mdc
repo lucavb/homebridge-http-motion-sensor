@@ -1,0 +1,204 @@
+---
+description: 
+globs: package.json
+alwaysApply: false
+---
+# Package Management Rules
+
+## 🚨 CRITICAL: Never Edit package.json Dependencies Manually
+
+### ❌ FORBIDDEN Actions
+- **NEVER** manually edit `dependencies` section in package.json
+- **NEVER** manually edit `devDependencies` section in package.json  
+- **NEVER** manually edit `peerDependencies` section in package.json
+- **NEVER** manually edit version numbers in package.json dependencies
+- **NEVER** edit package-lock.json directly
+- **NEVER** delete package-lock.json (except for troubleshooting)
+
+### ✅ REQUIRED: Use npm Commands Only
+
+#### Adding Dependencies
+```bash
+# Production dependencies
+npm install <package-name>
+npm install <package-name>@<version>
+
+# Development dependencies  
+npm install --save-dev <package-name>
+npm install -D <package-name>
+
+# Peer dependencies (document in README)
+npm install --save-peer <package-name>
+```
+
+#### Removing Dependencies
+```bash
+# Remove any dependency
+npm uninstall <package-name>
+npm remove <package-name>
+
+# Remove dev dependency
+npm uninstall --save-dev <package-name>
+```
+
+#### Updating Dependencies
+```bash
+# Update specific package
+npm update <package-name>
+
+# Update all packages (within semver range)
+npm update
+
+# Check for outdated packages
+npm outdated
+
+# Update to latest versions (use with caution)
+npx npm-check-updates -u
+npm install
+```
+
+## Package.json Editing Rules
+
+### ✅ ALLOWED Manual Edits
+- Project metadata (name, description, version, author, etc.)
+- Scripts section (`"scripts"`: {...})
+- Repository, homepage, bugs URLs
+- Keywords array
+- License information
+- Engines requirements
+- Files array for publishing
+- publishConfig settings
+
+### Example Safe Edits
+```json
+{
+  "name": "homebridge-http-motion-sensor",
+  "description": "Updated description",
+  "scripts": {
+    "new-script": "echo 'new script'"
+  },
+  "keywords": ["new", "keyword"],
+  "engines": {
+    "node": "^20.15.1 || ^22"
+  }
+}
+```
+
+## Dependency Management Best Practices
+
+### Version Management
+- Use semantic versioning ranges appropriately
+- Pin exact versions for critical dependencies when needed
+- Use `npm install --save-exact` for exact versions
+- Document version constraints in comments when needed
+
+### Security and Auditing
+```bash
+# Check for security vulnerabilities
+npm audit
+
+# Fix vulnerabilities automatically
+npm audit fix
+
+# Check for outdated packages with security issues
+npm audit --audit-level high
+```
+
+### Lock File Management
+- **ALWAYS** commit package-lock.json to version control
+- **NEVER** ignore package-lock.json in .gitignore
+- Use `npm ci` in CI/CD pipelines instead of `npm install`
+- Delete node_modules and package-lock.json only for troubleshooting
+
+### Troubleshooting Commands
+```bash
+# Clean install (CI/CD environments)
+npm ci
+
+# Clear npm cache
+npm cache clean --force
+
+# Rebuild dependencies
+rm -rf node_modules package-lock.json
+npm install
+
+# Verify package integrity
+npm install --package-lock-only
+```
+
+## Homebridge Plugin Specific Rules
+
+### Required Dependencies for Homebridge Plugins
+- Use `homebridge` as peerDependency (not regular dependency)
+- Include proper version ranges for homebridge compatibility
+- Use `hap-nodejs` for direct HAP access if needed
+
+### Development Dependencies
+- Include TypeScript and related tools in devDependencies
+- Add testing frameworks to devDependencies only
+- Include build tools (eslint, prettier) in devDependencies
+
+### Publishing Configuration
+```json
+{
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist",
+    "config.schema.json"
+  ]
+}
+```
+
+## Error Prevention
+
+### Common Mistakes to Avoid
+- Don't mix npm and yarn lock files
+- Don't commit node_modules directory
+- Don't use global installs for project dependencies
+- Don't manually resolve dependency conflicts in package.json
+
+### Validation Commands
+```bash
+# Validate package.json syntax
+npm run build
+
+# Check for missing dependencies
+npm ls
+
+# Verify all dependencies are installed
+npm install --dry-run
+```
+
+## CI/CD Integration
+
+### Package Installation in CI
+```yaml
+# Use npm ci for faster, reliable builds
+- name: Install dependencies
+  run: npm ci
+```
+
+### Dependency Updates in CI
+- Use automated dependency update tools (Renovate, Dependabot)
+- Run tests after dependency updates
+- Review breaking changes before merging updates
+
+## Emergency Procedures
+
+### If package.json Gets Corrupted
+1. Restore from version control: `git checkout package.json`
+2. If package-lock.json is corrupted: `rm package-lock.json && npm install`
+3. If node_modules is corrupted: `rm -rf node_modules && npm install`
+
+### Rollback Procedures
+```bash
+# Rollback to previous package-lock.json
+git checkout HEAD~1 package-lock.json
+npm ci
+
+# Rollback specific dependency
+npm install <package-name>@<previous-version>
+```
