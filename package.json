@@ -82,7 +82,7 @@
         "hap-nodejs": "1.2.0",
         "homebridge": "1.11.0",
         "husky": "9.1.7",
-        "jiti": "2.4.2",
+        "jiti": "2.5.0",
         "prettier": "3.6.2",
         "semantic-release": "24.2.7",
         "typescript": "5.8.3",
