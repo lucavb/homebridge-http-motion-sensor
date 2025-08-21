@@ -12,7 +12,7 @@ export const sensorConfigSchema = z.object({
     port: z.coerce.number().int().min(1024, 'Port must be at least 1024').max(65535, 'Port must be at most 65535'),
     model: z.string().optional(),
     serial: z.string().optional(),
-    bind_ip: z.string().ip().optional().or(z.literal('0.0.0.0')),
+    bind_ip: z.union([z.ipv4(), z.ipv6()]).optional().or(z.literal('0.0.0.0')),
     repeater: z.array(repeaterEntrySchema).optional(),
 });
 
