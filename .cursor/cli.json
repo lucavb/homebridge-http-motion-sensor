@@ -1,0 +1,23 @@
+{
+    "permissions": {
+        "allow": [
+            "Read(**)",
+            "Grep(**)",
+            "LS(**)",
+            "Glob(**)",
+            "SemanticSearch(**)",
+            "Shell(gh pr view **)",
+            "Shell(gh pr diff **)",
+            "Shell(gh pr review **)",
+            "Shell(gh api **)"
+        ],
+        "deny": [
+            "Shell(git push)",
+            "Shell(gh pr create)",
+            "Write(**)",
+            "StrReplace(**)",
+            "MultiStrReplace(**)",
+            "Delete(**)"
+        ]
+    }
+}
