@@ -31,7 +31,7 @@ jobs:
               timeout-minutes: 10
               env:
                   GH_TOKEN: ${{ github.token }}
-                  MODEL: auto
+                  MODEL: sonnet-4.5-thinking
               run: |
                   cursor-agent --force --model "$MODEL" --output-format=text --print "You are operating in a GitHub Actions runner performing automated code review. The gh CLI is available and authenticated via GH_TOKEN. You may comment on pull requests.
 
