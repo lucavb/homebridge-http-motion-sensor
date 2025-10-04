@@ -47,7 +47,7 @@ jobs:
                   3) Leave very short inline comments (1-2 sentences) on changed lines only and a brief summary at the end
 
                   Procedure:
-                  - Get existing comments: gh pr view --json comments
+                  - Get existing comments: gh pr view --json comments,reviews
                   - Get diff: gh pr diff
                   - If a previously reported issue appears fixed by nearby changes, reply: ✅ This issue appears to be resolved by the recent changes
                   - Avoid duplicates: skip if similar feedback already exists on or near the same lines
