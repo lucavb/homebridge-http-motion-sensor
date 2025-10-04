@@ -12,6 +12,7 @@
             "Shell(gh api **)"
         ],
         "deny": [
+            "Read(**/package-lock.json)",
             "Shell(git push)",
             "Shell(gh pr create)",
             "Write(**)",
