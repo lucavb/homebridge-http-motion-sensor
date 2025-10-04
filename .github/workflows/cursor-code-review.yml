@@ -42,14 +42,16 @@ jobs:
                   - PR Base SHA: ${{ github.event.pull_request.base.sha }}
 
                   Objectives:
-                  1) Re-check existing review comments and reply resolved when addressed
+                  1) Re-check existing review comments and resolve them when issues are addressed
                   2) Review the current PR diff and flag only clear, high-severity issues
                   3) Leave very short inline comments (1-2 sentences) on changed lines only and a brief summary at the end
 
                   Procedure:
                   - Get existing comments: gh pr view --json comments,reviews
                   - Get diff: gh pr diff
-                  - If a previously reported issue appears fixed by nearby changes, reply: ✅ This issue appears to be resolved by the recent changes
+                  - If a previously reported issue appears fixed by nearby changes:
+                    * Reply with: ✅ This issue appears to be resolved by the recent changes
+                    * Resolve the conversation using: gh pr comment <comment-id> --resolve
                   - Avoid duplicates: skip if similar feedback already exists on or near the same lines
 
                   Commenting rules:
@@ -69,5 +71,6 @@ jobs:
 
                   Submission:
                   - Submit one review containing inline comments plus a concise summary
-                  - Use only: gh pr review --comment
+                  - Use: gh pr review --comment for new reviews
+                  - Use: gh pr comment <comment-id> --resolve to resolve addressed issues
                   - Do not use: gh pr review --approve or --request-changes"
