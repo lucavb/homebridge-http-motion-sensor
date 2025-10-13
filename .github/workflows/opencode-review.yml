@@ -1,4 +1,4 @@
-name: Cursor Code Review
+name: OpenCode Review
 
 on:
     pull_request:
@@ -10,30 +10,28 @@ jobs:
         permissions:
             contents: read
             pull-requests: write
-        env:
-            CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
-
         steps:
             - name: Checkout repository
               uses: actions/checkout@v5
               with:
                   fetch-depth: 0
-                  ref: ${{ github.event.pull_request.head.sha }}
 
-            - name: Install Cursor CLI
-              if: ${{ env.CURSOR_API_KEY != '' }}
-              run: |
-                  curl https://cursor.com/install -fsS | bash
-                  echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+
+            - name: Install OpenCode CLI
+              run: npm install -g opencode-ai
 
             - name: Perform code review
-              if: ${{ env.CURSOR_API_KEY != '' }}
               timeout-minutes: 10
               env:
                   GH_TOKEN: ${{ github.token }}
-                  MODEL: sonnet-4.5-thinking
+                  LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+                  LITELLM_ENDPOINT: ${{ secrets.LITELLM_ENDPOINT }}
               run: |
-                  cursor-agent --force --model "$MODEL" --output-format=text --print "You are operating in a GitHub Actions runner performing automated code review. The gh CLI is available and authenticated via GH_TOKEN. You may comment on pull requests.
+                  opencode run --model litellm/anthropic/claude-sonnet-4-5 "You are operating in a GitHub Actions runner performing automated code review. The gh CLI is available and authenticated via GH_TOKEN. You may comment on pull requests.
 
                   Context:
                   - Repo: ${{ github.repository }}
@@ -49,6 +47,7 @@ jobs:
                   Procedure:
                   - Get existing comments: gh pr view --json comments,reviews
                   - Get diff: gh pr diff
+                  - Read related files when you deem the information valuable for context (imports, dependencies, types, etc.)
                   - If a previously reported issue appears fixed by nearby changes:
                     * Reply with: ✅ This issue appears to be resolved by the recent changes
                     * Resolve the conversation using: gh pr comment <comment-id> --resolve
