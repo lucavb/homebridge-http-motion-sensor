@@ -14,6 +14,13 @@ export const sensorConfigSchema = z.object({
     serial: z.string().optional(),
     bind_ip: z.union([z.ipv4(), z.ipv6()]).optional().or(z.literal('0.0.0.0')),
     repeater: z.array(repeaterEntrySchema).optional(),
+    motion_timeout_seconds: z.coerce
+        .number()
+        .int()
+        .min(1, 'Motion timeout must be at least 1 second')
+        .max(999999, 'Motion timeout must be at most 999999 seconds')
+        .optional()
+        .default(11),
 });
 
 export const platformConfigSchema = z.object({

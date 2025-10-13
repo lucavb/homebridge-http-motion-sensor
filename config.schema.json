@@ -53,6 +53,14 @@
                             "placeholder": "0.0.0.0",
                             "format": "ipv4"
                         },
+                        "motion_timeout_seconds": {
+                            "title": "Motion Timeout (seconds)",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 300,
+                            "default": 11,
+                            "description": "How long motion detection stays active after being triggered (1-300 seconds)"
+                        },
                         "repeater": {
                             "title": "Repeater Endpoints",
                             "type": "array",
@@ -108,6 +116,7 @@
             "items": [
                 "sensors[].name",
                 "sensors[].port",
+                "sensors[].motion_timeout_seconds",
                 "sensors[].model",
                 "sensors[].serial",
                 "sensors[].bind_ip",
