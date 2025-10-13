@@ -1,0 +1,41 @@
+name: OpenCode Connection Test
+
+on:
+    push:
+        branches:
+            - test
+
+jobs:
+    test-connection:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+
+            - name: Install OpenCode CLI
+              run: npm install -g opencode-ai
+
+            - name: Test OpenCode with LiteLLM
+              timeout-minutes: 3
+              env:
+                  LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+                  LITELLM_ENDPOINT: ${{ secrets.LITELLM_ENDPOINT }}
+              run: |
+                  opencode run --model litellm/anthropic/claude-sonnet-4-5 "You are testing a connection to an AI model and verifying file access.
+                  
+                  Please perform the following tasks:
+                  1. Read the README.md file and tell me what this repository is about (1-2 sentences)
+                  2. Browse the src/ directory and list the main TypeScript files you find
+                  3. Read package.json and tell me what the main dependencies are
+                  4. Check if there are any test files in the tests/ directory
+                  
+                  Format your response clearly with numbered sections matching the tasks above. This tests that you can access and read multiple files in the repository."
+
