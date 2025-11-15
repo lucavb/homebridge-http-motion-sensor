@@ -15,13 +15,15 @@
                     "name": "Test Motion Sensor 1",
                     "port": 18089,
                     "model": "Test ESP8266",
-                    "serial": "TEST-001"
+                    "serial": "TEST-001",
+                    "motion_timeout_seconds": 5
                 },
                 {
                     "name": "Test Motion Sensor 2",
                     "port": 18090,
                     "model": "Test ESP8266",
                     "serial": "TEST-002",
+                    "motion_timeout_seconds": 15,
                     "repeater": [
                         {
                             "host": "httpbin.org",
