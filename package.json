@@ -86,7 +86,7 @@
         "prettier": "3.7.4",
         "semantic-release": "25.0.2",
         "typescript": "5.9.3",
-        "typescript-eslint": "8.49.0"
+        "typescript-eslint": "8.50.0"
     },
     "peerDependencies": {
         "homebridge": "^1.6.0 || ^2.0.0-beta.0"
