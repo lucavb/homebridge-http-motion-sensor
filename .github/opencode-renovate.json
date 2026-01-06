@@ -1,0 +1,39 @@
+{
+    "mcp": {
+        "github": {
+            "type": "local",
+            "command": [
+                "docker",
+                "run",
+                "-i",
+                "--rm",
+                "-e",
+                "GITHUB_PERSONAL_ACCESS_TOKEN",
+                "-e",
+                "GITHUB_TOOLSETS=pull_request_read,pull_request_write"
+            ],
+            "args": ["ghcr.io/github/github-mcp-server"],
+            "enabled": true,
+            "environment": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
+            }
+        },
+        "context7": {
+            "type": "local",
+            "command": ["npx", "-y", "@upstash/context7-mcp"],
+            "enabled": true
+        },
+        "fetch": {
+            "type": "local",
+            "command": ["npx", "-y", "@anthropics/mcp-server-fetch"],
+            "enabled": true
+        }
+    },
+    "tools": {
+        "write": false,
+        "edit": false
+    },
+    "permission": {
+        "bash": "allow"
+    }
+}

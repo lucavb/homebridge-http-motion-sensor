@@ -1,0 +1,46 @@
+name: OpenCode Renovate Review
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+        branches:
+            - main
+
+jobs:
+    renovate-review:
+        if: startsWith(github.head_ref, 'renovate/')
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: '.nvmrc'
+                  cache: 'npm'
+
+            - name: Install OpenCode CLI
+              run: npm install -g opencode-ai
+
+            - name: Install project dependencies
+              run: npm ci
+
+            - name: Perform dependency review
+              timeout-minutes: 15
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+                  LITELLM_ENDPOINT: ${{ secrets.LITELLM_ENDPOINT }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  REPO_OWNER: ${{ github.repository_owner }}
+                  REPO_NAME: ${{ github.event.repository.name }}
+              run: |
+                  opencode run --config .github/opencode-renovate.json \
+                    --model litellm/anthropic/claude-sonnet-4-5 \
+                    "Review Renovate PR #$PR_NUMBER in $REPO_OWNER/$REPO_NAME using the renovate-review skill."

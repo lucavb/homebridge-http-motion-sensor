@@ -46,4 +46,5 @@
     ],
     timezone: 'Europe/Berlin',
     minimumReleaseAge: '2 days',
+    fetchChangeLogs: 'pr',
 }
