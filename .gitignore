@@ -44,3 +44,4 @@ dist
 config/
 manual-test/
 debug-test/
+.opencode.json

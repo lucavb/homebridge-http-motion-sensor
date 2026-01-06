@@ -31,6 +31,9 @@ jobs:
             - name: Install project dependencies
               run: npm ci
 
+            - name: Set up OpenCode config for CI
+              run: ln -sf .github/opencode-renovate.json .opencode.json
+
             - name: Perform dependency review
               timeout-minutes: 15
               env:
@@ -41,6 +44,5 @@ jobs:
                   REPO_OWNER: ${{ github.repository_owner }}
                   REPO_NAME: ${{ github.event.repository.name }}
               run: |
-                  opencode run --config .github/opencode-renovate.json \
-                    --model litellm/anthropic/claude-sonnet-4-5 \
+                  opencode run --model litellm/anthropic/claude-sonnet-4-5 \
                     "Review Renovate PR #$PR_NUMBER in $REPO_OWNER/$REPO_NAME using the renovate-review skill."
