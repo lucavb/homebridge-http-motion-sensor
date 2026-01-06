@@ -1,4 +1,10 @@
 {
+    "providers": {
+        "litellm": {
+            "endpoint": "{env:LITELLM_ENDPOINT}",
+            "apiKey": "{env:LITELLM_API_KEY}"
+        }
+    },
     "mcp": {
         "github": {
             "type": "local",
