@@ -80,7 +80,7 @@
         "eslint": "9.39.2",
         "globals": "17.3.0",
         "hap-nodejs": "1.2.0",
-        "homebridge": "1.11.1",
+        "homebridge": "1.11.2",
         "husky": "9.1.7",
         "jiti": "2.6.1",
         "prettier": "3.8.1",
