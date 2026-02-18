@@ -79,7 +79,7 @@ npm install
   },
   "keywords": ["new", "keyword"],
   "engines": {
-    "node": "^20.15.1 || ^22"
+    "node": "^22 || ^24"
   }
 }
 ```

@@ -38,7 +38,7 @@ This version has been completely modernized to use the latest Homebridge APIs an
 ⚠️ **Configuration Format Changed**: The plugin now uses platform configuration instead of accessory configuration.
 
 - **Requires Homebridge 1.6.0 or later** (compatible with Homebridge v2.0)
-- **Node.js 20.15.1 or 22+ required** (Node.js 18 support dropped, following Homebridge v2.0)
+- **Node.js 22 or 24+ required** (Node.js 20 support dropped)
 - **Migration required**: See migration guide below
 
 ### Homebridge v2.0 Compatibility
