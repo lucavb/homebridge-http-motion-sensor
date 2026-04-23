@@ -1,7 +1,10 @@
 {
     "compilerOptions": {
-        "target": "ES2024",
+        "target": "ES2025",
         "module": "commonjs",
+        "moduleResolution": "bundler",
+        "rootDir": "./src",
+        "types": ["node"],
         "declaration": true,
         "strict": true,
         "esModuleInterop": true,
