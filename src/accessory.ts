@@ -42,6 +42,8 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
         this.name = this.config.name;
         this.bindIP = this.config.bind_ip ?? '0.0.0.0';
 
+        this.log.info(`Motion sensor '${this.name}' configured with ${this.config.motion_timeout_seconds}s timeout`);
+
         this.informationService = new hap.Service.AccessoryInformation()
             .setCharacteristic(hap.Characteristic.Manufacturer, 'Homebridge')
             .setCharacteristic(hap.Characteristic.Model, this.config.model ?? 'HTTP Motion Sensor')
@@ -110,14 +112,15 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
             clearTimeout(this.timeout);
         }
 
+        const timeoutMs = this.config.motion_timeout_seconds * 1000;
         this.timeout = setTimeout(() => {
             this.motionDetected = false;
             this.motionSensorService
                 .getCharacteristic(this.api.hap.Characteristic.MotionDetected)
                 .updateValue(this.motionDetected);
             this.timeout = null;
-            this.log.debug('Motion detection reset');
-        }, 11 * 1000);
+            this.log.debug(`Motion detection reset after ${this.config.motion_timeout_seconds} seconds`);
+        }, timeoutMs);
     }
 
     private getState(callback: CharacteristicGetCallback): void {
