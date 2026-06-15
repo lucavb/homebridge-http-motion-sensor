@@ -129,6 +129,7 @@ This plugin now uses the **platform plugin** architecture for better flexibility
                     "serial": "E642011E3ECB",
                     "model": "ESP8266 Motion Sensor",
                     "bind_ip": "0.0.0.0",
+                    "motion_timeout_seconds": 30,
                     "repeater": [
                         {
                             "host": "192.168.2.11",
@@ -142,7 +143,8 @@ This plugin now uses the **platform plugin** architecture for better flexibility
                     "name": "Garden Motion Sensor",
                     "port": 18090,
                     "serial": "F642011E3ECC",
-                    "model": "ESP8266 Motion Sensor"
+                    "model": "ESP8266 Motion Sensor",
+                    "motion_timeout_seconds": 15
                 }
             ]
         }
@@ -160,14 +162,15 @@ This plugin now uses the **platform plugin** architecture for better flexibility
 
 ### Sensor Configuration
 
-| Key      | Description                                                                                                                                                                                                                                                               |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name     | Required. The name of this motion sensor. This will appear in your HomeKit app                                                                                                                                                                                            |
-| port     | Required. The port that you want this sensor to listen on. Choose a number above 1024 and make sure each sensor uses a different port                                                                                                                                     |
-| model    | Optional. Model name displayed in HomeKit                                                                                                                                                                                                                                 |
-| serial   | Optional. Serial number displayed in HomeKit. If not provided, a default will be used                                                                                                                                                                                     |
-| bind_ip  | Optional. IP address to bind the HTTP server to. Defaults to "0.0.0.0" (all interfaces)                                                                                                                                                                                   |
-| repeater | Optional. Array of endpoints to call when motion is detected. Each entry will trigger an HTTP GET request. Useful for triggering other devices or services. See [Node.js HTTP documentation](https://nodejs.org/api/http.html#http_http_get_options_callback) for details |
+| Key                    | Description                                                                                                                                                                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name                   | Required. The name of this motion sensor. This will appear in your HomeKit app                                                                                                                                                                                            |
+| port                   | Required. The port that you want this sensor to listen on. Choose a number above 1024 and make sure each sensor uses a different port                                                                                                                                     |
+| motion_timeout_seconds | Optional. How long motion detection stays active after being triggered, in seconds. Must be between 1-300 seconds. Defaults to 11 seconds                                                                                                                                 |
+| model                  | Optional. Model name displayed in HomeKit                                                                                                                                                                                                                                 |
+| serial                 | Optional. Serial number displayed in HomeKit. If not provided, a default will be used                                                                                                                                                                                     |
+| bind_ip                | Optional. IP address to bind the HTTP server to. Defaults to "0.0.0.0" (all interfaces)                                                                                                                                                                                   |
+| repeater               | Optional. Array of endpoints to call when motion is detected. Each entry will trigger an HTTP GET request. Useful for triggering other devices or services. See [Node.js HTTP documentation](https://nodejs.org/api/http.html#http_http_get_options_callback) for details |
 
 ### Repeater Configuration
 
