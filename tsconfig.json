@@ -1,16 +1,22 @@
 {
     "compilerOptions": {
-        "target": "ES2025",
-        "module": "commonjs",
-        "moduleResolution": "bundler",
-        "rootDir": "./src",
-        "types": ["node"],
+        "allowImportingTsExtensions": true,
         "declaration": true,
-        "strict": true,
+        "declarationMap": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "outDir": "dist"
+        "lib": ["ES2023"],
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+        "rewriteRelativeImportExtensions": true,
+        "rootDir": "./src",
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "ES2023",
+        "types": ["node"]
     },
-    "include": ["src"],
-    "exclude": ["node_modules"]
+    "include": ["src/"],
+    "exclude": ["**/*.spec.ts", "dist", "node_modules"]
 }

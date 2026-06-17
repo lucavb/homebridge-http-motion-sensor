@@ -1,9 +1,7 @@
-import { API } from 'homebridge';
-import { HttpMotionSensorPlatform } from './platform';
+import type { API } from 'homebridge';
 
-const PLATFORM_NAME = 'HttpMotionSensorPlatform';
-const PLUGIN_NAME = 'homebridge-http-motion-sensor';
+import { HttpMotionSensorPlatform, PLATFORM_NAME, PLUGIN_NAME } from './platform.ts';
 
-export = (api: API): void => {
+export default (api: API): void => {
     api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, HttpMotionSensorPlatform);
 };

@@ -16,7 +16,25 @@
 > **Old**: Configured in `"accessories"` array  
 > **New**: Configured in `"platforms"` array
 
-This plugin offers you a motion sensor that can be triggered via an HTTP request. This can be used in conjunction with an ESP8266 for instance or an Arduino with an ethernet shield. I will add an example Arduino script in the future.
+This plugin offers you a motion sensor that can be triggered via an HTTP request. This can be used in conjunction with an ESP8266 for instance or an Arduino with an ethernet shield. See the [ESP8266 example](esp8266/sensor.ino) in this repository.
+
+## Upcoming v3.0.0
+
+Version **3.0.0** will migrate this plugin to `DynamicPlatformPlugin`. **Accessory UUIDs will change** — you may need to remove duplicate motion sensors from the Home app and re-link automations after upgrading.
+
+- Config format and HTTP trigger behaviour stay the same
+- Optional motion reset timeout and HTTP authentication are planned for v3
+- Stay on **2.x** if you want zero HomeKit disruption; upgrade to v3 when you are ready
+
+You will see a warning in the Homebridge logs on startup from v2.2 onward.
+
+## What's New in v2.2.0
+
+- **Homebridge 2.1 ready**: Dual ESM/CJS build via tsdown; tested with Homebridge 2.1
+- **Homebridge 1.x support preserved**: CommonJS entry via `dist/index.cjs`
+- **Modern toolchain**: Vitest unit tests, shelly-ds9-style CI, husky pre-commit hooks
+- **API cleanup**: `.onGet()` for motion state reads, improved config validation
+- **Static platform preserved**: Existing HomeKit accessory UUIDs unchanged on 2.x
 
 ## What's New in v2.0.0
 
@@ -24,8 +42,7 @@ This version has been completely modernized to use the latest Homebridge APIs an
 
 - **🏗️ Platform Plugin Architecture**: Converted from accessory plugin to platform plugin as recommended by Homebridge developers
 - **📦 Multiple Sensor Support**: Configure multiple HTTP motion sensors in a single platform
-- **⬆️ Updated to Homebridge 1.10.0**: Now compatible with the latest Homebridge version
-- **🚀 Homebridge v2.0 Ready**: Full compatibility with Homebridge v2.0 beta and stable releases
+- **⬆️ Updated for Homebridge 1.6+ and 2.x**: Compatible with Homebridge 2.1 via dual-module publish
 - **🗑️ Removed deprecated dependencies**: Eliminated `homebridge-ts-helper` dependency and use modern Homebridge APIs directly
 - **✨ Enhanced Configuration UI**: Rich configuration schema with validation and user-friendly forms
 - **🛡️ Better error handling**: Enhanced HTTP server error handling and configuration validation
@@ -37,8 +54,8 @@ This version has been completely modernized to use the latest Homebridge APIs an
 
 ⚠️ **Configuration Format Changed**: The plugin now uses platform configuration instead of accessory configuration.
 
-- **Requires Homebridge 1.6.0 or later** (compatible with Homebridge v2.0)
-- **Node.js 22 or 24+ required** (Node.js 20 support dropped)
+- **Requires Homebridge 1.6.0 or later** (including Homebridge 2.1)
+- **Node.js 22.12+ or 24+ required**
 - **Migration required**: See migration guide below
 
 ### Homebridge v2.0 Compatibility
@@ -186,17 +203,37 @@ This plugin now uses the **platform plugin** architecture for better flexibility
 - **Enhanced Configuration**: Rich configuration UI with validation
 - **Improved Logging**: Better debugging and monitoring capabilities
 
+### Homebridge 2.x Compatibility
+
+This plugin ships a dual ESM/CJS build and declares `engines.homebridge: ^1.6.0 || ^2.0.0`. Users should see a green checkmark in the Homebridge UI readiness check on Homebridge 2.x.
+
 ## Testing
 
-### Automated Testing
-
-Run the full automated test suite:
+### Unit tests (Vitest)
 
 ```bash
 npm test
 ```
 
-This will:
+CI uses `npm run test:ci` for verbose output.
+
+### Integration tests (Homebridge + HTTP)
+
+End-to-end tests boot Homebridge and exercise the HTTP motion sensors:
+
+```bash
+npm run test:integration
+```
+
+Requires global `homebridge`, `curl`, and `nc` (netcat).
+
+### Full local gate (matches CI)
+
+```bash
+npm run cq && npm run test:ci && npm run test:integration
+```
+
+The integration suite will:
 
 - Build the plugin
 - Start a test Homebridge instance
@@ -206,22 +243,4 @@ This will:
 - Test motion reset after timeout
 - Show logs and optionally keep Homebridge running for manual testing
 
-For CI environments (no interactive prompts):
-
-```bash
-npm run test:ci
-```
-
-### Manual Testing
-
-For quick development testing:
-
-```bash
-npm run test:manual
-```
-
-For quick start during development:
-
-```bash
-npm run test:quick
-```
+For CI environments (no interactive prompts), `test:integration` is used automatically.

@@ -1,21 +1,19 @@
 // @ts-check
 
 import eslint from '@eslint/js';
+import vitest from '@vitest/eslint-plugin';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-    // Global ignores
     {
         ignores: ['dist/**', 'node_modules/**'],
     },
 
-    // Base configs
     eslint.configs.recommended,
     tseslint.configs.recommended,
 
-    // Custom overrides for TypeScript files
     {
-        files: ['src/**/*.ts', 'src/**/*.tsx'],
+        files: ['src/**/*.ts'],
         languageOptions: {
             parserOptions: {
                 project: './tsconfig.json',
@@ -37,6 +35,7 @@ export default tseslint.config(
             'guard-for-in': 'error',
             'new-cap': 'error',
             'no-caller': 'error',
+            'no-console': 'warn',
             'no-extend-native': 'error',
             'no-extra-bind': 'error',
             'no-invalid-this': 'off',
@@ -56,6 +55,22 @@ export default tseslint.config(
             indent: ['error', 4, { SwitchCase: 1 }],
             quotes: ['error', 'single'],
             semi: 'error',
+        },
+    },
+
+    {
+        files: ['src/**/*.spec.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: './tsconfig.spec.json',
+            },
+        },
+        plugins: {
+            vitest,
+        },
+        rules: {
+            ...vitest.configs.recommended.rules,
+            '@typescript-eslint/no-explicit-any': 'off',
         },
     },
 );

@@ -20,6 +20,7 @@
             "sensors": {
                 "title": "Motion Sensors",
                 "type": "array",
+                "minItems": 1,
                 "items": {
                     "type": "object",
                     "properties": {

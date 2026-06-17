@@ -8,7 +8,7 @@ alwaysApply: true
 ## Project Overview
 - **Purpose**: Homebridge platform plugin for HTTP-triggered motion sensors
 - **Architecture**: TypeScript-based Homebridge platform plugin with multiple sensor support  
-- **Tech Stack**: TypeScript, Node.js, Homebridge API, HAP-NodeJS, Zod validation
+- **Tech Stack**: TypeScript, tsdown, Vitest, Homebridge API, Zod validation
 - **Target**: IoT devices (ESP8266, Arduino) integration with HomeKit
 
 ## Homebridge Plugin Development Standards
@@ -16,12 +16,14 @@ alwaysApply: true
 ### Platform Plugin Architecture
 - Use platform plugin pattern (not accessory plugin) following Homebridge v2.0 best practices
 - Register platform in `src/index.ts` using `api.registerPlatform()`
-- Implement `StaticPlatformPlugin` interface in platform class
+- Implement `StaticPlatformPlugin` (v2.x; DynamicPlatformPlugin planned for v3)
+- Dual ESM/CJS publish via tsdown (`dist/index.js` + `dist/index.cjs`)
 - Support multiple accessories per platform instance
 
 ### TypeScript Patterns
 - Use strict TypeScript configuration with ES6 target
-- Export using `export =` syntax for Homebridge compatibility
+- Export default function from `src/index.ts` for Homebridge 2.x ESM loading
+- Use `.ts` import suffixes with `moduleResolution: bundler`
 - Implement proper interfaces for all plugin components
 - Use Zod for configuration validation and type safety
 
@@ -33,7 +35,7 @@ alwaysApply: true
 
 ### Configuration Management
 - Define JSON schema in `config.schema.json` for Homebridge UI
-- Use Zod schemas for runtime validation in `src/schemas.ts`
+- Use Zod for configuration validation in `src/config.ts` (`PlatformOptions`)
 - Support both single and multiple sensor configurations
 - Implement proper error handling for invalid configurations
 
@@ -43,7 +45,7 @@ alwaysApply: true
 - `src/index.ts` - Plugin entry point and registration
 - `src/platform.ts` - Main platform implementation
 - `src/accessory.ts` - Individual sensor accessory logic
-- `src/schemas.ts` - Zod validation schemas
+- `src/config.ts` - PlatformOptions + Zod validation
 - `config.schema.json` - JSON schema for Homebridge UI
 
 ### Naming Conventions
@@ -60,18 +62,13 @@ alwaysApply: true
 - Validate all configuration inputs with Zod
 
 ### Testing Requirements
-- Maintain functional tests in `tests/` directory
-- Test configuration validation and HTTP endpoints
-- Include CI/CD compatible test scripts
-- Support both development and CI testing modes
-
-## Development Workflow
+- Vitest unit tests colocated as `src/**/*.spec.ts`
+- Integration tests via `npm run test:integration` (`tests/test.sh`)
+- CI: `cq` → `test:ci` → `test:integration`
 
 ### Build Process
-- Use TypeScript compiler with declaration files
-- Output to `dist/` directory
-- Include proper npm scripts for build, clean, watch
-- Support prepublish builds
+- Use tsdown for dual ESM/CJS bundle to `dist/`
+- Typecheck with `tsc --noEmit` only
 
 ### Code Quality Tools
 - ESLint with TypeScript support (eslint.config.mts)
@@ -80,9 +77,9 @@ alwaysApply: true
 - Commitlint for conventional commits
 
 ### Testing Commands
-- `npm test` - Run full test suite
-- `npm run test:ci` - CI-compatible testing
-- `npm run test:quick` - Quick development testing
+- `npm test` / `npm run test:ci` - Vitest unit tests
+- `npm run test:integration` - Homebridge HTTP integration suite
+- `npm run cq` - typecheck, eslint, prettier, build
 - `npm run start` - Development server with test config
 
 ## IoT Integration Guidelines

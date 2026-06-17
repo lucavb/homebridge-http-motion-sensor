@@ -1,0 +1,12 @@
+#!/bin/sh
+
+staged_ts_files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|mts)$' || true)
+staged_format_files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|mts|json|md|yml|yaml)$' || true)
+
+if [ -n "$staged_ts_files" ]; then
+    echo "$staged_ts_files" | xargs npx eslint --max-warnings=0
+fi
+
+if [ -n "$staged_format_files" ]; then
+    echo "$staged_format_files" | xargs npx prettier --check
+fi

@@ -1,34 +1,48 @@
-import { AccessoryPlugin, API, Logging, StaticPlatformPlugin } from 'homebridge';
-import { HomebridgeHttpMotionSensorConfig, HttpMotionSensorPlatformConfig, platformConfigSchema } from './schemas';
-import { HttpMotionSensorAccessory } from './accessory';
+import type { AccessoryPlugin, API, Logging, PlatformConfig, StaticPlatformPlugin } from 'homebridge';
+
+import { HttpMotionSensorAccessory } from './accessory.ts';
+import { PlatformOptions } from './config.ts';
+
+/**
+ * The name of this plugin.
+ */
+export const PLUGIN_NAME = 'homebridge-http-motion-sensor';
+
+/**
+ * The name of this homebridge platform.
+ */
+export const PLATFORM_NAME = 'HttpMotionSensorPlatform';
 
 export class HttpMotionSensorPlatform implements StaticPlatformPlugin {
-    private readonly config: HttpMotionSensorPlatformConfig;
+    private readonly options: PlatformOptions;
 
     constructor(
         private readonly log: Logging,
-        config: unknown,
+        config: PlatformConfig,
         private readonly api: API,
     ) {
         this.log.info('Initializing HttpMotionSensorPlatform');
 
-        const result = platformConfigSchema.safeParse(config);
-        if (!result.success) {
-            this.log.error('Invalid platform configuration:');
-            result.error.issues.forEach((issue) => {
-                this.log.error(`${issue.path.join('.')}: ${issue.message}`);
-            });
-            throw new Error('Platform configuration validation failed');
+        try {
+            this.options = new PlatformOptions(config);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.log.error(`Invalid platform configuration: ${message}`);
+            throw error;
         }
 
-        this.config = result.data;
-        this.log.info(`Found ${this.sensors.length} motion sensor(s) to initialize`);
+        this.log.warn(
+            'homebridge-http-motion-sensor v3.0.0 will migrate to DynamicPlatformPlugin. ' +
+                'Accessory UUIDs will change — watch the release notes before upgrading to v3.',
+        );
+
+        this.log.info(`Found ${this.options.sensors.length} motion sensor(s) to initialize`);
     }
 
     accessories(callback: (foundAccessories: AccessoryPlugin[]) => void): void {
         const accessories: AccessoryPlugin[] = [];
 
-        for (const sensorConfig of this.sensors) {
+        for (const sensorConfig of this.options.sensors) {
             try {
                 const accessory = new HttpMotionSensorAccessory(this.log, sensorConfig, this.api, this.api.hap);
                 accessories.push(accessory);
@@ -39,9 +53,5 @@ export class HttpMotionSensorPlatform implements StaticPlatformPlugin {
         }
 
         callback(accessories);
-    }
-
-    private get sensors(): HomebridgeHttpMotionSensorConfig[] {
-        return this.config.sensors ?? [];
     }
 }

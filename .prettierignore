@@ -1,0 +1,7 @@
+dist
+node_modules
+.tmp
+.cursor
+.opencode
+coverage
+package-lock.json

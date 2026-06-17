@@ -1,20 +1,34 @@
+import type { AccessoryPlugin, API, HAP, Logging, Service } from 'homebridge';
+import { createServer, get, type RequestOptions, type Server } from 'http';
+
 import {
-    AccessoryPlugin,
-    API,
-    CharacteristicEventTypes,
-    CharacteristicGetCallback,
-    HAP,
-    Logging,
-    Service,
-} from 'homebridge';
-import { createServer, get, RequestOptions, Server } from 'http';
-import { HomebridgeHttpMotionSensorConfig, sensorConfigSchema } from './schemas';
+    type HomebridgeHttpMotionSensorConfig,
+    type HomebridgeHttpMotionSensorRepeaterEntry,
+    MOTION_RESET_MS,
+} from './config.ts';
+
+export function buildRepeaterRequestOptions(repeater: HomebridgeHttpMotionSensorRepeaterEntry): RequestOptions {
+    const options: RequestOptions = {
+        host: repeater.host,
+        port: repeater.port,
+        path: repeater.path,
+        method: 'GET',
+    };
+
+    if (repeater.auth) {
+        options.headers = {
+            Authorization: repeater.auth,
+        };
+    }
+
+    return options;
+}
 
 export class HttpMotionSensorAccessory implements AccessoryPlugin {
     public readonly name: string;
     private readonly config: HomebridgeHttpMotionSensorConfig;
 
-    private motionDetected: boolean = false;
+    private motionDetected = false;
     private timeout: ReturnType<typeof setTimeout> | null = null;
 
     private readonly motionSensorService: Service;
@@ -25,20 +39,11 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
 
     constructor(
         private readonly log: Logging,
-        config: unknown,
+        config: HomebridgeHttpMotionSensorConfig,
         private readonly api: API,
         hap: HAP,
     ) {
-        const result = sensorConfigSchema.safeParse(config);
-        if (!result.success) {
-            this.log.error('Invalid sensor configuration:');
-            result.error.issues.forEach((issue) => {
-                this.log.error(`${issue.path.join('.')}: ${issue.message}`);
-            });
-            throw new Error('Sensor configuration validation failed');
-        }
-
-        this.config = result.data;
+        this.config = config;
         this.name = this.config.name;
         this.bindIP = this.config.bind_ip ?? '0.0.0.0';
 
@@ -48,9 +53,7 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
             .setCharacteristic(hap.Characteristic.SerialNumber, this.config.serial ?? 'Default-Serial');
 
         this.motionSensorService = new hap.Service.MotionSensor(this.config.name);
-        this.motionSensorService
-            .getCharacteristic(hap.Characteristic.MotionDetected)
-            .on(CharacteristicEventTypes.GET, this.getState.bind(this));
+        this.motionSensorService.getCharacteristic(hap.Characteristic.MotionDetected).onGet(() => this.motionDetected);
 
         this.setupHttpServer();
         this.api.on('shutdown', this.shutdown.bind(this));
@@ -77,21 +80,10 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
     private httpHandler(): void {
         if (this.config.repeater && Array.isArray(this.config.repeater)) {
             for (const repeater of this.config.repeater) {
+                const options = buildRepeaterRequestOptions(repeater);
                 const url = `http://${repeater.host}:${repeater.port}${repeater.path}`;
-                const options: RequestOptions = {
-                    host: repeater.host,
-                    port: repeater.port,
-                    path: repeater.path,
-                    method: 'GET',
-                };
 
-                if (repeater.auth) {
-                    options.headers = {
-                        Authorization: repeater.auth,
-                    };
-                }
-
-                get(url, () => {
+                get(options, () => {
                     this.log.debug(`Repeater request to ${url} successful`);
                 }).on('error', (error) => {
                     this.log.warn(`Repeater request to ${url} failed: ${error.message}`);
@@ -99,30 +91,28 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
             }
         }
 
-        this.motionDetected = true;
-        this.motionSensorService
-            .getCharacteristic(this.api.hap.Characteristic.MotionDetected)
-            .updateValue(this.motionDetected);
-
-        this.log.debug('Motion detected via HTTP request');
+        this.setMotionDetected(true);
 
         if (this.timeout) {
             clearTimeout(this.timeout);
         }
 
         this.timeout = setTimeout(() => {
-            this.motionDetected = false;
-            this.motionSensorService
-                .getCharacteristic(this.api.hap.Characteristic.MotionDetected)
-                .updateValue(this.motionDetected);
+            this.setMotionDetected(false);
             this.timeout = null;
             this.log.debug('Motion detection reset');
-        }, 11 * 1000);
+        }, MOTION_RESET_MS);
     }
 
-    private getState(callback: CharacteristicGetCallback): void {
-        this.log.debug(`Motion sensor state requested: ${this.motionDetected}`);
-        callback(null, this.motionDetected);
+    private setMotionDetected(detected: boolean): void {
+        this.motionDetected = detected;
+        this.motionSensorService
+            .getCharacteristic(this.api.hap.Characteristic.MotionDetected)
+            .updateValue(this.motionDetected);
+
+        if (detected) {
+            this.log.debug('Motion detected via HTTP request');
+        }
     }
 
     private shutdown(): void {

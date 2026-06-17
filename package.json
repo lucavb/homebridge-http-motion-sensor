@@ -32,36 +32,41 @@
         "url": "https://luca-becker.me"
     },
     "sideEffects": false,
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "type": "module",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        }
+    },
     "files": [
         "config.schema.json",
         "dist",
         "homebridge-http-motion-sensor.jpg"
     ],
     "scripts": {
-        "build": "npm run clean && tsc",
-        "build:watch": "tsc --watch",
-        "clean": "rm -rf dist",
-        "commitlint": "commitlint --edit --last",
-        "cq": "npm run cq:typecheck && npm run cq:eslint && npm run cq:prettier",
-        "cq:eslint": "eslint src --ext .ts",
-        "cq:eslint:fix": "eslint src --ext .ts --fix",
-        "cq:prettier": "prettier --check src/**/*.ts",
-        "cq:prettier:fix": "prettier --write src/**/*.ts",
+        "build": "tsdown",
+        "commitlint": "commitlint --edit",
+        "cq": "npm run cq:typecheck && npm run cq:eslint && npm run cq:prettier && npm run build",
+        "cq:eslint": "eslint . --max-warnings=0",
+        "cq:eslint:fix": "eslint . --max-warnings=0 --fix",
+        "cq:prettier": "prettier --check .",
+        "cq:prettier:fix": "prettier --write .",
         "cq:typecheck": "tsc --noEmit",
         "prepare": "husky",
         "prepublishOnly": "npm run build",
+        "publishd": "npm publish --dry-run",
         "release": "semantic-release",
         "release:dry-run": "semantic-release --dry-run",
         "start": "npm run build && homebridge -D -U .tmp -P .",
-        "test": "./tests/test.sh",
-        "test:ci": "./tests/test.sh --ci",
-        "test:clean": "rm -rf .tmp config",
-        "test:dev": "npm run build && homebridge -D -U .tmp -P .",
-        "test:functional": "./tests/test.sh",
-        "test:manual": "./tests/manual-test.sh",
-        "test:quick": "npm run build && mkdir -p .tmp && cp tests/test-config.json .tmp/config.json && homebridge -D -U .tmp -P ."
+        "test": "vitest run",
+        "test:ci": "vitest run --reporter=verbose",
+        "test:integration": "./tests/test.sh --ci",
+        "test:watch": "vitest"
     },
     "dependencies": {
         "zod": "4.4.3"
@@ -76,24 +81,26 @@
         "@semantic-release/npm": "13.1.5",
         "@semantic-release/release-notes-generator": "14.1.1",
         "@types/node": "24.13.2",
+        "@vitest/eslint-plugin": "1.6.20",
         "conventional-changelog-conventionalcommits": "9.3.1",
         "eslint": "10.5.0",
         "globals": "17.6.0",
-        "hap-nodejs": "1.2.0",
-        "homebridge": "1.11.4",
+        "homebridge": "2.1.0",
         "husky": "9.1.7",
         "jiti": "2.7.0",
         "prettier": "3.8.4",
         "semantic-release": "25.0.5",
+        "tsdown": "0.22.2",
         "typescript": "6.0.3",
-        "typescript-eslint": "8.61.0"
+        "typescript-eslint": "8.61.0",
+        "vitest": "4.1.8"
     },
     "peerDependencies": {
-        "homebridge": "^1.6.0 || ^2.0.0-beta.0"
+        "homebridge": "^1.6.0 || ^2.0.0"
     },
     "engines": {
-        "homebridge": "^1.6.0 || ^2.0.0-beta.0",
-        "node": "^22 || ^24"
+        "homebridge": "^1.6.0 || ^2.0.0",
+        "node": "^22.12.0 || ^24.0.0"
     },
     "publishConfig": {
         "access": "public",

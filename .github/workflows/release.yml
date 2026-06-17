@@ -27,14 +27,11 @@ jobs:
             - name: Use Node.js
               uses: actions/setup-node@v6
               with:
-                  node-version-file: '.nvmrc'
+                  node-version: '24'
                   cache: 'npm'
 
             - name: Install dependencies
               run: npm ci
-
-            - name: Install latest npm
-              run: npm install -g npm@latest
 
             - name: Install Homebridge
               run: npm install -g homebridge
@@ -42,11 +39,14 @@ jobs:
             - name: Code Quality
               run: npm run cq
 
-            - name: Tests
+            - name: Unit tests
               run: npm run test:ci
 
-            - name: Build
-              run: npm run build
+            - name: Integration tests
+              run: npm run test:integration
+
+            - name: Upgrade npm for OIDC trusted publishing
+              run: npm install -g npm@latest
 
             - name: Release
               env:
