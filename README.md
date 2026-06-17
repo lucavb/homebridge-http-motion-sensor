@@ -18,23 +18,29 @@
 
 This plugin offers you a motion sensor that can be triggered via an HTTP request. This can be used in conjunction with an ESP8266 for instance or an Arduino with an ethernet shield. See the [ESP8266 example](esp8266/sensor.ino) in this repository.
 
-## Upcoming v3.0.0
+## What's New in v4.0.0
 
-Version **3.0.0** will migrate this plugin to `DynamicPlatformPlugin`. **Accessory UUIDs will change** — you may need to remove duplicate motion sensors from the Home app and re-link automations after upgrading.
+- **Dynamic platform plugin**: Migrated to `DynamicPlatformPlugin` (Homebridge best practice)
+- **Configurable motion reset**: Optional `reset_timeout` per sensor in seconds (default: 11)
+- **Stable accessory identity**: UUIDs derived from `serial` (or `name`) + `port`
 
-- Config format and HTTP trigger behaviour stay the same
-- Optional motion reset timeout and HTTP authentication are planned for v3
-- Stay on **2.x** if you want zero HomeKit disruption; upgrade to v3 when you are ready
+### Breaking Changes in v4.0.0
 
-You will see a warning in the Homebridge logs on startup from v2.2 onward.
+**HomeKit accessory UUIDs change** when upgrading from v3.x. You may see duplicate motion sensors in the Home app and need to re-link automations. See [Migration from v3.x](#migration-from-v3x) below.
 
-## What's New in v2.2.0
+- Platform config format is unchanged
+- HTTP trigger behaviour is unchanged
+
+## What's New in v3.1.0
 
 - **Homebridge 2.1 ready**: Dual ESM/CJS build via tsdown; tested with Homebridge 2.1
 - **Homebridge 1.x support preserved**: CommonJS entry via `dist/index.cjs`
 - **Modern toolchain**: Vitest unit tests, shelly-ds9-style CI, husky pre-commit hooks
 - **API cleanup**: `.onGet()` for motion state reads, improved config validation
-- **Static platform preserved**: Existing HomeKit accessory UUIDs unchanged on 2.x
+
+## What's New in v3.0.0
+
+- **Node.js 22.12+ or 24+ required** (Node.js 20 support dropped)
 
 ## What's New in v2.0.0
 
@@ -119,6 +125,25 @@ Users will see a **green checkmark** in the Homebridge UI readiness check when u
 - Enhanced configuration UI with validation
 - Future-proof architecture following Homebridge best practices
 
+### Migration from v3.x
+
+**Required when upgrading to v4.0.0+**: HomeKit accessory UUIDs change because the plugin now uses `DynamicPlatformPlugin`.
+
+**Follow these steps:**
+
+1. Note your current motion sensor names and any HomeKit automations that use them
+2. Upgrade the plugin to v4.0.0 and restart Homebridge
+3. In the Home app, remove the **old** duplicate motion sensors (ghost accessories from v3.x)
+4. Re-assign automations and scenes to the new sensors
+5. Optionally set `reset_timeout` (seconds) per sensor if the default 11 seconds does not suit your hardware
+
+**Tips for stable UUIDs in v4+:**
+
+- Set `serial` in config if you want to rename the sensor in HomeKit without changing its UUID
+- Changing `port` or `serial` (or `name` when no `serial` is set) creates a new accessory — remove the old one from Home
+
+Config format and HTTP ports are unchanged — no `config.json` edits are required for the upgrade itself.
+
 ## Installation
 
 Run the following command
@@ -177,14 +202,15 @@ This plugin now uses the **platform plugin** architecture for better flexibility
 
 ### Sensor Configuration
 
-| Key      | Description                                                                                                                                                                                                                                                               |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name     | Required. The name of this motion sensor. This will appear in your HomeKit app                                                                                                                                                                                            |
-| port     | Required. The port that you want this sensor to listen on. Choose a number above 1024 and make sure each sensor uses a different port                                                                                                                                     |
-| model    | Optional. Model name displayed in HomeKit                                                                                                                                                                                                                                 |
-| serial   | Optional. Serial number displayed in HomeKit. If not provided, a default will be used                                                                                                                                                                                     |
-| bind_ip  | Optional. IP address to bind the HTTP server to. Defaults to "0.0.0.0" (all interfaces)                                                                                                                                                                                   |
-| repeater | Optional. Array of endpoints to call when motion is detected. Each entry will trigger an HTTP GET request. Useful for triggering other devices or services. See [Node.js HTTP documentation](https://nodejs.org/api/http.html#http_http_get_options_callback) for details |
+| Key           | Description                                                                                                                                                                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name          | Required. The name of this motion sensor. This will appear in your HomeKit app                                                                                                                                                                                            |
+| port          | Required. The port that you want this sensor to listen on. Choose a number above 1024 and make sure each sensor uses a different port                                                                                                                                     |
+| model         | Optional. Model name displayed in HomeKit                                                                                                                                                                                                                                 |
+| serial        | Optional. Serial number displayed in HomeKit. Also used for stable accessory UUID in v4+. If not provided, `name` is used instead                                                                                                                                         |
+| bind_ip       | Optional. IP address to bind the HTTP server to. Defaults to "0.0.0.0" (all interfaces)                                                                                                                                                                                   |
+| reset_timeout | Optional. Seconds before motion resets to inactive. Default is 11                                                                                                                                                                                                         |
+| repeater      | Optional. Array of endpoints to call when motion is detected. Each entry will trigger an HTTP GET request. Useful for triggering other devices or services. See [Node.js HTTP documentation](https://nodejs.org/api/http.html#http_http_get_options_callback) for details |
 
 ### Repeater Configuration
 

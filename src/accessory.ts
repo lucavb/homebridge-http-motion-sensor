@@ -1,10 +1,12 @@
-import type { AccessoryPlugin, API, HAP, Logging, Service } from 'homebridge';
+import type { API, Logging, PlatformAccessory, Service } from 'homebridge';
 import { createServer, get, type RequestOptions, type Server } from 'http';
 
 import {
     type HomebridgeHttpMotionSensorConfig,
     type HomebridgeHttpMotionSensorRepeaterEntry,
-    MOTION_RESET_MS,
+    type SensorAccessoryContext,
+    getMotionResetMs,
+    sensorRuntimeConfigEqual,
 } from './config.ts';
 
 export function buildRepeaterRequestOptions(repeater: HomebridgeHttpMotionSensorRepeaterEntry): RequestOptions {
@@ -24,39 +26,66 @@ export function buildRepeaterRequestOptions(repeater: HomebridgeHttpMotionSensor
     return options;
 }
 
-export class HttpMotionSensorAccessory implements AccessoryPlugin {
-    public readonly name: string;
-    private readonly config: HomebridgeHttpMotionSensorConfig;
-
+export class HttpMotionSensorAccessory {
     private motionDetected = false;
     private timeout: ReturnType<typeof setTimeout> | null = null;
 
-    private readonly motionSensorService: Service;
-    private readonly informationService: Service;
-
+    private motionSensorService?: Service;
     private server?: Server;
+    private config: HomebridgeHttpMotionSensorConfig;
     private readonly bindIP: string;
 
     constructor(
         private readonly log: Logging,
         config: HomebridgeHttpMotionSensorConfig,
+        private readonly platformAccessory: PlatformAccessory<SensorAccessoryContext>,
         private readonly api: API,
-        hap: HAP,
     ) {
         this.config = config;
-        this.name = this.config.name;
         this.bindIP = this.config.bind_ip ?? '0.0.0.0';
+        this.platformAccessory.context.sensor = this.config;
 
-        this.informationService = new hap.Service.AccessoryInformation()
+        this.setupServices();
+        this.setupHttpServer();
+    }
+
+    hasSameRuntimeConfig(config: HomebridgeHttpMotionSensorConfig): boolean {
+        return sensorRuntimeConfigEqual(this.config, config);
+    }
+
+    updateMetadata(config: HomebridgeHttpMotionSensorConfig): void {
+        this.config = config;
+        this.platformAccessory.context.sensor = config;
+
+        const hap = this.api.hap;
+        const informationService = this.platformAccessory.getService(hap.Service.AccessoryInformation);
+        informationService
+            ?.setCharacteristic(hap.Characteristic.Model, config.model ?? 'HTTP Motion Sensor')
+            .setCharacteristic(hap.Characteristic.SerialNumber, config.serial ?? 'Default-Serial');
+    }
+
+    private setupServices(): void {
+        const hap = this.api.hap;
+
+        let informationService = this.platformAccessory.getService(hap.Service.AccessoryInformation);
+        if (!informationService) {
+            informationService = new hap.Service.AccessoryInformation();
+            this.platformAccessory.addService(informationService);
+        }
+
+        informationService
             .setCharacteristic(hap.Characteristic.Manufacturer, 'Homebridge')
             .setCharacteristic(hap.Characteristic.Model, this.config.model ?? 'HTTP Motion Sensor')
             .setCharacteristic(hap.Characteristic.SerialNumber, this.config.serial ?? 'Default-Serial');
 
-        this.motionSensorService = new hap.Service.MotionSensor(this.config.name);
-        this.motionSensorService.getCharacteristic(hap.Characteristic.MotionDetected).onGet(() => this.motionDetected);
+        let motionSensorService = this.platformAccessory.getService(hap.Service.MotionSensor);
+        if (!motionSensorService) {
+            motionSensorService = new hap.Service.MotionSensor(this.config.name);
+            this.platformAccessory.addService(motionSensorService);
+        }
 
-        this.setupHttpServer();
-        this.api.on('shutdown', this.shutdown.bind(this));
+        motionSensorService.getCharacteristic(hap.Characteristic.MotionDetected).onGet(() => this.motionDetected);
+        this.motionSensorService = motionSensorService;
     }
 
     private setupHttpServer(): void {
@@ -101,11 +130,16 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
             this.setMotionDetected(false);
             this.timeout = null;
             this.log.debug('Motion detection reset');
-        }, MOTION_RESET_MS);
+        }, getMotionResetMs(this.config));
     }
 
     private setMotionDetected(detected: boolean): void {
         this.motionDetected = detected;
+
+        if (!this.motionSensorService) {
+            return;
+        }
+
         this.motionSensorService
             .getCharacteristic(this.api.hap.Characteristic.MotionDetected)
             .updateValue(this.motionDetected);
@@ -115,19 +149,24 @@ export class HttpMotionSensorAccessory implements AccessoryPlugin {
         }
     }
 
-    private shutdown(): void {
-        if (this.server) {
-            this.server.close();
-            this.log.info('HTTP server shutdown');
-        }
-
+    shutdown(): Promise<void> {
         if (this.timeout) {
             clearTimeout(this.timeout);
             this.timeout = null;
         }
-    }
 
-    getServices(): Service[] {
-        return [this.informationService, this.motionSensorService];
+        if (!this.server) {
+            return Promise.resolve();
+        }
+
+        const server = this.server;
+        this.server = undefined;
+
+        return new Promise((resolve) => {
+            server.close(() => {
+                this.log.info(`HTTP server shutdown for '${this.config.name}'`);
+                resolve();
+            });
+        });
     }
 }

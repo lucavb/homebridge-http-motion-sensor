@@ -1,6 +1,26 @@
+import type { API } from 'homebridge';
 import { describe, expect, it } from 'vitest';
 
-import { MOTION_RESET_MS, PlatformOptions, parsePlatformConfig } from './config.ts';
+import {
+    buildSensorUuid,
+    DEFAULT_RESET_TIMEOUT_SECONDS,
+    getMotionResetMs,
+    MOTION_RESET_MS,
+    PlatformOptions,
+    parsePlatformConfig,
+    sensorRuntimeConfigEqual,
+} from './config.ts';
+import { PLUGIN_NAME } from './constants.ts';
+
+function createMockApi(): API {
+    return {
+        hap: {
+            uuid: {
+                generate: (input: string) => `uuid-for-${input}`,
+            },
+        },
+    } as unknown as API;
+}
 
 describe('PlatformOptions', () => {
     const validConfig = {
@@ -30,6 +50,35 @@ describe('PlatformOptions', () => {
         });
 
         expect(options.sensors[0]?.port).toBe(19000);
+    });
+
+    it('parses optional reset_timeout', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [{ name: 'Hallway', port: 18089, reset_timeout: '30' }],
+        });
+
+        expect(options.sensors[0]?.reset_timeout).toBe(30);
+    });
+
+    it('rejects reset_timeout below 1', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, reset_timeout: 0 }],
+                }),
+        ).toThrow();
+    });
+
+    it('rejects reset_timeout above 3600', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, reset_timeout: 3601 }],
+                }),
+        ).toThrow();
     });
 
     it('rejects an empty sensors array', () => {
@@ -76,8 +125,60 @@ describe('parsePlatformConfig', () => {
     });
 });
 
-describe('MOTION_RESET_MS', () => {
-    it('uses an 11 second motion reset window', () => {
+describe('buildSensorUuid', () => {
+    const api = createMockApi();
+
+    it('prefers serial over name in the identity string', () => {
+        const uuid = buildSensorUuid(api, {
+            name: 'Hallway',
+            port: 18089,
+            serial: 'E642011E3ECB',
+        });
+
+        expect(uuid).toBe(`uuid-for-${PLUGIN_NAME}:E642011E3ECB:18089`);
+    });
+
+    it('falls back to name when serial is not set', () => {
+        const uuid = buildSensorUuid(api, {
+            name: 'Hallway',
+            port: 18089,
+        });
+
+        expect(uuid).toBe(`uuid-for-${PLUGIN_NAME}:Hallway:18089`);
+    });
+
+    it('includes port in the identity string', () => {
+        const uuidA = buildSensorUuid(api, { name: 'Hallway', port: 18089 });
+        const uuidB = buildSensorUuid(api, { name: 'Hallway', port: 18090 });
+
+        expect(uuidA).not.toBe(uuidB);
+    });
+});
+
+describe('getMotionResetMs', () => {
+    it('defaults to 11 seconds', () => {
+        expect(getMotionResetMs({ name: 'Hallway', port: 18089 })).toBe(11_000);
+        expect(DEFAULT_RESET_TIMEOUT_SECONDS).toBe(11);
         expect(MOTION_RESET_MS).toBe(11_000);
+    });
+
+    it('uses configured reset_timeout in seconds', () => {
+        expect(getMotionResetMs({ name: 'Hallway', port: 18089, reset_timeout: 5 })).toBe(5_000);
+    });
+});
+
+describe('sensorRuntimeConfigEqual', () => {
+    const base = { name: 'Hallway', port: 18089, bind_ip: '0.0.0.0' as const };
+
+    it('treats matching runtime fields as equal even when name differs', () => {
+        expect(sensorRuntimeConfigEqual(base, { ...base, name: 'Renamed Hallway' })).toBe(true);
+    });
+
+    it('detects port changes', () => {
+        expect(sensorRuntimeConfigEqual(base, { ...base, port: 18090 })).toBe(false);
+    });
+
+    it('detects reset_timeout changes', () => {
+        expect(sensorRuntimeConfigEqual(base, { ...base, reset_timeout: 30 })).toBe(false);
     });
 });

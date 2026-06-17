@@ -54,6 +54,14 @@
                             "placeholder": "0.0.0.0",
                             "format": "ipv4"
                         },
+                        "reset_timeout": {
+                            "title": "Motion Reset Timeout",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3600,
+                            "placeholder": "11",
+                            "description": "Seconds before motion resets to inactive (default: 11)"
+                        },
                         "repeater": {
                             "title": "Repeater Endpoints",
                             "type": "array",
@@ -112,6 +120,7 @@
                 "sensors[].model",
                 "sensors[].serial",
                 "sensors[].bind_ip",
+                "sensors[].reset_timeout",
                 {
                     "key": "sensors[].repeater",
                     "type": "array",

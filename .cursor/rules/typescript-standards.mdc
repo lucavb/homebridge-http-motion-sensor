@@ -177,13 +177,9 @@ const PlatformConfigSchema = z.object({
 type PlatformConfig = z.infer<typeof PlatformConfigSchema>;
 
 // Platform class with proper typing
-export class HttpMotionSensorPlatform implements StaticPlatformPlugin {
-    constructor(
-        private readonly log: Logger,
-        private readonly config: PlatformConfig, // Properly typed!
-        private readonly api: API,
-    ) {
-        // config is now fully typed and validated
+export class HttpMotionSensorPlatform implements DynamicPlatformPlugin {
+    configureAccessory(accessory: PlatformAccessory): void {
+        // store cached accessories on startup
     }
 }
 ```

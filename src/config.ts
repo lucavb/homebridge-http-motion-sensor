@@ -1,7 +1,12 @@
-import type { PlatformConfig } from 'homebridge';
+import type { API, PlatformConfig } from 'homebridge';
 import { z } from 'zod';
 
-export const MOTION_RESET_MS = 11 * 1000;
+import { PLUGIN_NAME } from './constants.ts';
+
+export const DEFAULT_RESET_TIMEOUT_SECONDS = 11;
+
+/** @deprecated Use getMotionResetMs(sensor) instead */
+export const MOTION_RESET_MS = DEFAULT_RESET_TIMEOUT_SECONDS * 1000;
 
 const repeaterEntrySchema = z.object({
     host: z.string().min(1, 'Host is required'),
@@ -16,6 +21,7 @@ const sensorConfigSchema = z.object({
     model: z.string().optional(),
     serial: z.string().optional(),
     bind_ip: z.union([z.ipv4(), z.ipv6()]).optional().or(z.literal('0.0.0.0')),
+    reset_timeout: z.coerce.number().int().min(1).max(3600).optional(),
     repeater: z.array(repeaterEntrySchema).optional(),
 });
 
@@ -28,6 +34,31 @@ const platformConfigSchema = z.object({
 export type HomebridgeHttpMotionSensorRepeaterEntry = z.infer<typeof repeaterEntrySchema>;
 export type HomebridgeHttpMotionSensorConfig = z.infer<typeof sensorConfigSchema>;
 export type HttpMotionSensorPlatformConfig = z.infer<typeof platformConfigSchema>;
+
+export interface SensorAccessoryContext {
+    sensor: HomebridgeHttpMotionSensorConfig;
+}
+
+export function buildSensorUuid(api: API, sensor: HomebridgeHttpMotionSensorConfig): string {
+    const identity = sensor.serial ?? sensor.name;
+    return api.hap.uuid.generate(`${PLUGIN_NAME}:${identity}:${sensor.port}`);
+}
+
+export function getMotionResetMs(sensor: HomebridgeHttpMotionSensorConfig): number {
+    return (sensor.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) * 1000;
+}
+
+export function sensorRuntimeConfigEqual(
+    a: HomebridgeHttpMotionSensorConfig,
+    b: HomebridgeHttpMotionSensorConfig,
+): boolean {
+    return (
+        a.port === b.port &&
+        (a.bind_ip ?? '0.0.0.0') === (b.bind_ip ?? '0.0.0.0') &&
+        (a.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) === (b.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) &&
+        JSON.stringify(a.repeater ?? []) === JSON.stringify(b.repeater ?? [])
+    );
+}
 
 export class PlatformOptions {
     readonly name: string;

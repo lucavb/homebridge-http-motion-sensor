@@ -16,7 +16,7 @@ alwaysApply: true
 ### Platform Plugin Architecture
 - Use platform plugin pattern (not accessory plugin) following Homebridge v2.0 best practices
 - Register platform in `src/index.ts` using `api.registerPlatform()`
-- Implement `StaticPlatformPlugin` (v2.x; DynamicPlatformPlugin planned for v3)
+- Implement `DynamicPlatformPlugin` with `configureAccessory` and `registerPlatformAccessories`
 - Dual ESM/CJS publish via tsdown (`dist/index.js` + `dist/index.cjs`)
 - Support multiple accessories per platform instance
 
