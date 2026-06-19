@@ -62,6 +62,46 @@
                             "placeholder": "11",
                             "description": "Seconds before motion resets to inactive (default: 11)"
                         },
+                        "auth": {
+                            "title": "Inbound Authentication",
+                            "type": "object",
+                            "properties": {
+                                "mode": {
+                                    "title": "Authentication Mode",
+                                    "type": "string",
+                                    "enum": ["none", "bearer", "basic", "header"],
+                                    "default": "none",
+                                    "description": "Optional protection for HTTP requests that trigger this sensor"
+                                },
+                                "token": {
+                                    "title": "Bearer Token",
+                                    "type": "string",
+                                    "placeholder": "Generate a long random string",
+                                    "description": "Client must send Authorization: Bearer <token>"
+                                },
+                                "username": {
+                                    "title": "Username",
+                                    "type": "string",
+                                    "description": "Basic auth username"
+                                },
+                                "password": {
+                                    "title": "Password",
+                                    "type": "string",
+                                    "description": "Stored in config.json in plaintext"
+                                },
+                                "header_name": {
+                                    "title": "Header Name",
+                                    "type": "string",
+                                    "default": "X-Api-Key",
+                                    "placeholder": "X-Api-Key"
+                                },
+                                "header_value": {
+                                    "title": "Header Value",
+                                    "type": "string",
+                                    "description": "Expected value for the custom header"
+                                }
+                            }
+                        },
                         "repeater": {
                             "title": "Repeater Endpoints",
                             "type": "array",
@@ -121,6 +161,49 @@
                 "sensors[].serial",
                 "sensors[].bind_ip",
                 "sensors[].reset_timeout",
+                {
+                    "type": "section",
+                    "title": "Security",
+                    "description": "Optional inbound authentication for HTTP trigger requests",
+                    "items": [
+                        "sensors[].auth.mode",
+                        {
+                            "key": "sensors[].auth.token",
+                            "type": "string",
+                            "condition": {
+                                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].auth && model.sensors[arrayIndices].auth.mode === 'bearer';"
+                            }
+                        },
+                        {
+                            "key": "sensors[].auth.username",
+                            "type": "string",
+                            "condition": {
+                                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].auth && model.sensors[arrayIndices].auth.mode === 'basic';"
+                            }
+                        },
+                        {
+                            "key": "sensors[].auth.password",
+                            "type": "string",
+                            "condition": {
+                                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].auth && model.sensors[arrayIndices].auth.mode === 'basic';"
+                            }
+                        },
+                        {
+                            "key": "sensors[].auth.header_name",
+                            "type": "string",
+                            "condition": {
+                                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].auth && model.sensors[arrayIndices].auth.mode === 'header';"
+                            }
+                        },
+                        {
+                            "key": "sensors[].auth.header_value",
+                            "type": "string",
+                            "condition": {
+                                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].auth && model.sensors[arrayIndices].auth.mode === 'header';"
+                            }
+                        }
+                    ]
+                },
                 {
                     "key": "sensors[].repeater",
                     "type": "array",

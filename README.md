@@ -18,6 +18,12 @@
 
 This plugin offers you a motion sensor that can be triggered via an HTTP request. This can be used in conjunction with an ESP8266 for instance or an Arduino with an ethernet shield. See the [ESP8266 example](esp8266/sensor.ino) in this repository.
 
+## What's New in v4.1.0
+
+- **Optional inbound authentication**: Per-sensor HTTP protection with Bearer token, Basic auth, or custom header
+- **Fully opt-in**: Existing configurations and unauthenticated HTTP triggers work unchanged
+- **Homebridge UI**: Security section in the config UI for each sensor
+
 ## What's New in v4.0.0
 
 - **Dynamic platform plugin**: Migrated to `DynamicPlatformPlugin` (Homebridge best practice)
@@ -210,16 +216,92 @@ This plugin now uses the **platform plugin** architecture for better flexibility
 | serial        | Optional. Serial number displayed in HomeKit. Also used for stable accessory UUID in v4+. If not provided, `name` is used instead                                                                                                                                         |
 | bind_ip       | Optional. IP address to bind the HTTP server to. Defaults to "0.0.0.0" (all interfaces)                                                                                                                                                                                   |
 | reset_timeout | Optional. Seconds before motion resets to inactive. Default is 11                                                                                                                                                                                                         |
+| auth          | Optional. Inbound authentication for HTTP trigger requests (see [Securing your sensors](#securing-your-sensors)). Not the same as `repeater[].auth`                                                                                                                       |
 | repeater      | Optional. Array of endpoints to call when motion is detected. Each entry will trigger an HTTP GET request. Useful for triggering other devices or services. See [Node.js HTTP documentation](https://nodejs.org/api/http.html#http_http_get_options_callback) for details |
+
+### Inbound Authentication (`sensors[].auth`)
+
+| Key          | Description                                                         |
+| ------------ | ------------------------------------------------------------------- |
+| mode         | Required when `auth` is set. One of `bearer`, `basic`, or `header`  |
+| token        | Required for `bearer`. Client sends `Authorization: Bearer <token>` |
+| username     | Required for `basic`. Basic auth username                           |
+| password     | Required for `basic`. Basic auth password                           |
+| header_name  | Required for `header`. Custom header name (e.g. `X-Api-Key`)        |
+| header_value | Required for `header`. Expected header value                        |
 
 ### Repeater Configuration
 
-| Key  | Description                                                                            |
-| ---- | -------------------------------------------------------------------------------------- |
-| host | Required. Hostname or IP address of the target server                                  |
-| port | Required. Port number of the target server                                             |
-| path | Required. URL path to request (e.g., "/api/trigger")                                   |
-| auth | Optional. Authorization header value (e.g., "Bearer token123" or "Basic dXNlcjpwYXNz") |
+| Key  | Description                                                                                                                                                                                                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| host | Required. Hostname or IP address of the target server                                                                                                                                                              |
+| port | Required. Port number of the target server                                                                                                                                                                         |
+| path | Required. URL path to request (e.g., "/api/trigger")                                                                                                                                                               |
+| auth | Optional. **Outbound** Authorization header value for repeater requests (e.g., `"Bearer token123"` or `"Basic dXNlcjpwYXNz"`). This is separate from `sensors[].auth`, which protects **inbound** trigger requests |
+
+## Securing your sensors
+
+By default, any device on your network can trigger a sensor by sending an HTTP request to its port. Optional per-sensor `auth` protects the inbound HTTP endpoint.
+
+> **Opt-in on both sides:** Enabling `sensors[].auth` in Homebridge without updating your ESP8266 or other HTTP client will stop motion from triggering until the client sends credentials. Update firmware ([`AUTH_ENABLED`](esp8266/sensor.ino)) or HTTP clients when you enable auth.
+
+Secrets are stored in `config.json` in plaintext (standard for Homebridge plugins). Use long random tokens where possible.
+
+### Bearer token (recommended)
+
+```json
+{
+    "name": "Hallway Motion Sensor",
+    "port": 18089,
+    "auth": {
+        "mode": "bearer",
+        "token": "your-long-random-secret"
+    }
+}
+```
+
+```bash
+curl -H "Authorization: Bearer your-long-random-secret" http://homebridge.local:18089/motion
+```
+
+### Basic auth
+
+```json
+{
+    "auth": {
+        "mode": "basic",
+        "username": "sensor",
+        "password": "your-password"
+    }
+}
+```
+
+```bash
+curl -u sensor:your-password http://homebridge.local:18089/motion
+```
+
+### Custom header
+
+```json
+{
+    "auth": {
+        "mode": "header",
+        "header_name": "X-Api-Key",
+        "header_value": "your-api-key"
+    }
+}
+```
+
+```bash
+curl -H "X-Api-Key: your-api-key" http://homebridge.local:18089/motion
+```
+
+### Testing auth
+
+```bash
+# Should return 401 when auth is enabled but header is missing
+curl -w "\n%{http_code}\n" http://homebridge.local:18089/motion
+```
 
 ## Benefits of Platform Plugin Architecture
 
@@ -263,9 +345,10 @@ The integration suite will:
 
 - Build the plugin
 - Start a test Homebridge instance
-- Create two test motion sensors on ports 18089 and 18090
+- Create three test motion sensors on ports 18089, 18090, and 18091 (auth-enabled)
 - Test motion detection and reset functionality
 - Verify HTTP responses, multiple requests, and different endpoints
+- Test inbound Bearer authentication on port 18091
 - Test motion reset after timeout
 - Show logs and optionally keep Homebridge running for manual testing
 

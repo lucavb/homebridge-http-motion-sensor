@@ -1,6 +1,7 @@
 import type { API, Logging, PlatformAccessory, Service } from 'homebridge';
-import { createServer, get, type RequestOptions, type Server } from 'http';
+import { createServer, get, type IncomingMessage, type RequestOptions, type Server, type ServerResponse } from 'http';
 
+import { getAuthStatusMessage, isAuthEnabled, validateInboundAuth } from './auth.ts';
 import {
     type HomebridgeHttpMotionSensorConfig,
     type HomebridgeHttpMotionSensorRepeaterEntry,
@@ -90,20 +91,39 @@ export class HttpMotionSensorAccessory {
 
     private setupHttpServer(): void {
         this.server = createServer((request, response) => {
-            this.httpHandler();
-            response.writeHead(200, { 'Content-Type': 'text/plain' });
-            response.end('Successfully requested: ' + request.url);
+            this.handleHttpRequest(request, response);
         });
 
         this.server.listen(this.config.port, this.bindIP, () => {
             this.log.info(
                 `HTTP Motion Sensor '${this.config.name}' is listening on http://${this.bindIP}:${this.config.port}`,
             );
+
+            if (this.config.auth) {
+                this.log.debug(
+                    `HTTP Motion Sensor '${this.config.name}': authentication enabled (${getAuthStatusMessage(this.config.auth)})`,
+                );
+            }
         });
 
         this.server.on('error', (error) => {
             this.log.error(`HTTP Server error: ${error.message}`);
         });
+    }
+
+    private handleHttpRequest(request: IncomingMessage, response: ServerResponse): void {
+        if (isAuthEnabled(this.config.auth) && !validateInboundAuth(request, this.config.auth)) {
+            this.log.warn(
+                `Rejected unauthenticated request to '${this.config.name}' from ${request.socket.remoteAddress ?? 'unknown'}`,
+            );
+            response.writeHead(401, { 'Content-Type': 'text/plain' });
+            response.end('Unauthorized');
+            return;
+        }
+
+        this.httpHandler();
+        response.writeHead(200, { 'Content-Type': 'text/plain' });
+        response.end('Successfully requested: ' + request.url);
     }
 
     private httpHandler(): void {

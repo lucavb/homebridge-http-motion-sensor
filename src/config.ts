@@ -15,6 +15,35 @@ const repeaterEntrySchema = z.object({
     auth: z.string().optional(),
 });
 
+const bearerAuthSchema = z.object({
+    mode: z.literal('bearer'),
+    token: z.string().min(1, 'Bearer token is required'),
+});
+
+const basicAuthSchema = z.object({
+    mode: z.literal('basic'),
+    username: z.string().min(1, 'Username is required'),
+    password: z.string().min(1, 'Password is required'),
+});
+
+const headerAuthSchema = z.object({
+    mode: z.literal('header'),
+    header_name: z.string().min(1, 'Header name is required'),
+    header_value: z.string().min(1, 'Header value is required'),
+});
+
+const sensorAuthSchema = z.discriminatedUnion('mode', [bearerAuthSchema, basicAuthSchema, headerAuthSchema]);
+
+const optionalSensorAuthSchema = z
+    .union([
+        sensorAuthSchema,
+        z.object({
+            mode: z.literal('none'),
+        }),
+    ])
+    .optional()
+    .transform((auth) => (auth?.mode === 'none' ? undefined : auth));
+
 const sensorConfigSchema = z.object({
     name: z.string().min(1, 'Sensor name is required'),
     port: z.coerce.number().int().min(1024, 'Port must be at least 1024').max(65535, 'Port must be at most 65535'),
@@ -22,6 +51,7 @@ const sensorConfigSchema = z.object({
     serial: z.string().optional(),
     bind_ip: z.union([z.ipv4(), z.ipv6()]).optional().or(z.literal('0.0.0.0')),
     reset_timeout: z.coerce.number().int().min(1).max(3600).optional(),
+    auth: optionalSensorAuthSchema,
     repeater: z.array(repeaterEntrySchema).optional(),
 });
 
@@ -32,6 +62,7 @@ const platformConfigSchema = z.object({
 });
 
 export type HomebridgeHttpMotionSensorRepeaterEntry = z.infer<typeof repeaterEntrySchema>;
+export type SensorAuthConfig = z.infer<typeof sensorAuthSchema>;
 export type HomebridgeHttpMotionSensorConfig = z.infer<typeof sensorConfigSchema>;
 export type HttpMotionSensorPlatformConfig = z.infer<typeof platformConfigSchema>;
 
@@ -56,6 +87,7 @@ export function sensorRuntimeConfigEqual(
         a.port === b.port &&
         (a.bind_ip ?? '0.0.0.0') === (b.bind_ip ?? '0.0.0.0') &&
         (a.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) === (b.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) &&
+        JSON.stringify(a.auth ?? null) === JSON.stringify(b.auth ?? null) &&
         JSON.stringify(a.repeater ?? []) === JSON.stringify(b.repeater ?? [])
     );
 }

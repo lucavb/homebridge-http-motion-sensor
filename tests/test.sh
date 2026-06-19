@@ -96,6 +96,36 @@ test_motion_sensor() {
     fi
 }
 
+# Function to test auth-enabled HTTP endpoint
+test_auth_motion_sensor() {
+    local port=$1
+    local token=$2
+    local sensor_name=$3
+
+    print_status "Testing auth-enabled motion sensor '$sensor_name' on port $port..."
+
+    local unauth_response
+    unauth_response=$(curl -s -w "%{http_code}" -o /dev/null "http://localhost:$port/trigger" 2>/dev/null)
+
+    if [[ "$unauth_response" == "401" ]]; then
+        print_success "Unauthenticated request correctly rejected (HTTP $unauth_response)"
+    else
+        print_error "Expected HTTP 401 without auth, got HTTP $unauth_response"
+        return 1
+    fi
+
+    local auth_response
+    auth_response=$(curl -s -w "%{http_code}" -o /dev/null -H "Authorization: Bearer $token" "http://localhost:$port/trigger" 2>/dev/null)
+
+    if [[ "$auth_response" == "200" ]]; then
+        print_success "Authenticated request accepted (HTTP $auth_response)"
+        return 0
+    else
+        print_error "Authenticated request failed (HTTP $auth_response)"
+        return 1
+    fi
+}
+
 # Main test function
 main() {
     print_status "Starting Homebridge HTTP Motion Sensor Plugin Test"
@@ -167,6 +197,7 @@ main() {
     # Wait for motion sensor ports to be available
     wait_for_port 18089 30 || exit 1
     wait_for_port 18090 30 || exit 1
+    wait_for_port 18091 30 || exit 1
     
     # Test the motion sensors
     print_status "Running motion sensor tests..."
@@ -207,6 +238,10 @@ main() {
     
     # Test again after reset
     test_motion_sensor 18089 "Test Motion Sensor 1 (after reset)" || exit 1
+
+    # Test 5: Inbound authentication
+    print_status "Test 5: Inbound Bearer authentication"
+    test_auth_motion_sensor 18091 "integration-test-token" "Test Motion Sensor 3 (Auth)" || exit 1
     
     # Show some logs to verify motion detection/reset cycle
     print_status "Recent Homebridge logs (motion detection/reset):"
@@ -227,6 +262,7 @@ main() {
     echo "  ✅ Multiple rapid requests handled correctly"
     echo "  ✅ Different URL endpoints work"
     echo "  ✅ Motion detection reset works after timeout"
+    echo "  ✅ Inbound Bearer authentication works on port 18091"
     
     print_status "Full logs available at: $TEST_DIR/homebridge.log"
     
@@ -239,6 +275,7 @@ main() {
             print_status "Homebridge will continue running..."
             print_status "Motion Sensor 1: http://localhost:18089"
             print_status "Motion Sensor 2: http://localhost:18090"
+            print_status "Motion Sensor 3 (auth): http://localhost:18091"
             print_status "Homebridge UI: http://localhost:51826"
             print_status "Test with: curl http://localhost:18089/your-endpoint"
             print_status "Press Ctrl+C to stop"

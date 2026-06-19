@@ -29,6 +29,16 @@
                             "path": "/get?test=repeater"
                         }
                     ]
+                },
+                {
+                    "name": "Test Motion Sensor 3 (Auth)",
+                    "port": 18091,
+                    "model": "Test ESP8266",
+                    "serial": "TEST-003",
+                    "auth": {
+                        "mode": "bearer",
+                        "token": "integration-test-token"
+                    }
                 }
             ]
         }

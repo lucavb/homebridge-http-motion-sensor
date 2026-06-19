@@ -26,6 +26,12 @@ IPAddress motionServer(192, 168, 22, 220);
 #define REMOTE_PORT_NUMBER 10200
 
 /*
+    Optional inbound authentication (must match sensors[].auth in Homebridge)
+*/
+#define AUTH_ENABLED false
+#define AUTH_TOKEN "your-long-random-secret"
+
+/*
     the time you want to wait until this calls your raspberry pi again
     I find 10.000 ms (10 s) to be reasonable. 
 */
@@ -67,6 +73,10 @@ void loop() {
             Serial.println("connected");
             // Make a HTTP request:
             client.println("GET /motion HTTP/1.1");
+#if AUTH_ENABLED
+            client.print("Authorization: Bearer ");
+            client.println(AUTH_TOKEN);
+#endif
             client.println();
         }
     }

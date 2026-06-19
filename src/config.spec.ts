@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import type { API } from 'homebridge';
 import { describe, expect, it } from 'vitest';
 
@@ -180,5 +184,199 @@ describe('sensorRuntimeConfigEqual', () => {
 
     it('detects reset_timeout changes', () => {
         expect(sensorRuntimeConfigEqual(base, { ...base, reset_timeout: 30 })).toBe(false);
+    });
+
+    it('treats matching auth configs as equal', () => {
+        const withAuth = {
+            ...base,
+            auth: { mode: 'bearer' as const, token: 'secret' },
+        };
+
+        expect(sensorRuntimeConfigEqual(withAuth, { ...withAuth })).toBe(true);
+    });
+
+    it('treats sensors without auth as equal', () => {
+        expect(sensorRuntimeConfigEqual(base, { ...base, name: 'Renamed' })).toBe(true);
+    });
+
+    it('detects auth changes', () => {
+        const withAuth = {
+            ...base,
+            auth: { mode: 'bearer' as const, token: 'secret' },
+        };
+
+        expect(sensorRuntimeConfigEqual(base, withAuth)).toBe(false);
+    });
+});
+
+describe('sensor auth configuration', () => {
+    const validConfig = {
+        platform: 'HttpMotionSensorPlatform',
+        name: 'HTTP Motion Sensor Platform',
+        sensors: [{ name: 'Hallway', port: 18089 }],
+    };
+
+    it('parses bearer auth', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [
+                {
+                    name: 'Hallway',
+                    port: 18089,
+                    auth: { mode: 'bearer', token: 'secret-token' },
+                },
+            ],
+        });
+
+        expect(options.sensors[0]?.auth).toEqual({ mode: 'bearer', token: 'secret-token' });
+    });
+
+    it('parses basic auth', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [
+                {
+                    name: 'Hallway',
+                    port: 18089,
+                    auth: { mode: 'basic', username: 'user', password: 'pass' },
+                },
+            ],
+        });
+
+        expect(options.sensors[0]?.auth).toEqual({ mode: 'basic', username: 'user', password: 'pass' });
+    });
+
+    it('parses header auth', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [
+                {
+                    name: 'Hallway',
+                    port: 18089,
+                    auth: { mode: 'header', header_name: 'X-Api-Key', header_value: 'secret' },
+                },
+            ],
+        });
+
+        expect(options.sensors[0]?.auth).toEqual({
+            mode: 'header',
+            header_name: 'X-Api-Key',
+            header_value: 'secret',
+        });
+    });
+
+    it('normalizes auth mode none to undefined', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [{ name: 'Hallway', port: 18089, auth: { mode: 'none' } }],
+        });
+
+        expect(options.sensors[0]?.auth).toBeUndefined();
+    });
+
+    it('rejects bearer auth without token', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, auth: { mode: 'bearer' } }],
+                }),
+        ).toThrow(/Platform configuration validation failed/);
+    });
+
+    it('rejects basic auth without password', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, auth: { mode: 'basic', username: 'user' } }],
+                }),
+        ).toThrow();
+    });
+
+    it('rejects header auth without header_value', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [
+                        {
+                            name: 'Hallway',
+                            port: 18089,
+                            auth: { mode: 'header', header_name: 'X-Api-Key' },
+                        },
+                    ],
+                }),
+        ).toThrow(/Platform configuration validation failed/);
+    });
+});
+
+describe('backward compatibility', () => {
+    it('parses minimal sensor config without auth', () => {
+        const options = new PlatformOptions({
+            platform: 'HttpMotionSensorPlatform',
+            name: 'HTTP Motion Sensor Platform',
+            sensors: [{ name: 'Hallway', port: 18089 }],
+        });
+
+        expect(options.sensors[0]?.auth).toBeUndefined();
+    });
+
+    it('parses README example config with repeater auth string', () => {
+        const options = new PlatformOptions({
+            platform: 'HttpMotionSensorPlatform',
+            name: 'HTTP Motion Sensor Platform',
+            sensors: [
+                {
+                    name: 'Hallway Motion Sensor',
+                    port: 18089,
+                    serial: 'E642011E3ECB',
+                    model: 'ESP8266 Motion Sensor',
+                    bind_ip: '0.0.0.0',
+                    repeater: [
+                        {
+                            host: '192.168.2.11',
+                            port: 22322,
+                            path: '/turnonscreentilltimeout',
+                            auth: 'Bearer your-token-here',
+                        },
+                    ],
+                },
+                {
+                    name: 'Garden Motion Sensor',
+                    port: 18090,
+                    serial: 'F642011E3ECC',
+                    model: 'ESP8266 Motion Sensor',
+                },
+            ],
+        });
+
+        expect(options.sensors).toHaveLength(2);
+        expect(options.sensors[0]?.auth).toBeUndefined();
+        expect(options.sensors[0]?.repeater?.[0]?.auth).toBe('Bearer your-token-here');
+    });
+
+    it('parses tests/test-config.json fixture', () => {
+        const testConfigPath = join(dirname(fileURLToPath(import.meta.url)), '../tests/test-config.json');
+        const testConfig = JSON.parse(readFileSync(testConfigPath, 'utf8')) as {
+            platforms: unknown[];
+        };
+        const platformConfig = testConfig.platforms[0];
+
+        expect(() => new PlatformOptions(platformConfig)).not.toThrow();
+    });
+});
+
+describe('buildSensorUuid auth independence', () => {
+    const api = createMockApi();
+
+    it('does not change uuid when auth is added', () => {
+        const withoutAuth = { name: 'Hallway', port: 18089, serial: 'E642011E3ECB' };
+        const withAuth = {
+            ...withoutAuth,
+            auth: { mode: 'bearer' as const, token: 'secret' },
+        };
+
+        expect(buildSensorUuid(api, withoutAuth)).toBe(buildSensorUuid(api, withAuth));
     });
 });
