@@ -90,7 +90,7 @@
         "husky": "9.1.7",
         "jiti": "2.7.0",
         "prettier": "3.9.5",
-        "semantic-release": "25.0.5",
+        "semantic-release": "25.0.6",
         "tsdown": "0.22.7",
         "typescript": "6.0.3",
         "typescript-eslint": "8.63.0",
