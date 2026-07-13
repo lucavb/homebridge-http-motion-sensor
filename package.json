@@ -84,7 +84,7 @@
         "@typescript/native": "npm:typescript@7.0.2",
         "@vitest/eslint-plugin": "1.6.23",
         "conventional-changelog-conventionalcommits": "10.2.1",
-        "eslint": "10.6.0",
+        "eslint": "10.7.0",
         "globals": "17.7.0",
         "homebridge": "2.1.0",
         "husky": "9.1.7",
