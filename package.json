@@ -82,7 +82,7 @@
         "@semantic-release/release-notes-generator": "14.1.1",
         "@types/node": "24.13.3",
         "@typescript/native": "npm:typescript@7.0.2",
-        "@vitest/eslint-plugin": "1.6.24",
+        "@vitest/eslint-plugin": "1.6.25",
         "conventional-changelog-conventionalcommits": "10.2.1",
         "eslint": "10.8.0",
         "globals": "17.8.0",
