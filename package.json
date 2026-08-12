@@ -86,7 +86,7 @@
         "conventional-changelog-conventionalcommits": "10.2.1",
         "eslint": "10.8.1",
         "globals": "17.9.0",
-        "homebridge": "2.3.0",
+        "homebridge": "2.3.1",
         "husky": "9.1.7",
         "jiti": "2.7.0",
         "prettier": "3.9.6",
