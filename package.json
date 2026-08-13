@@ -85,7 +85,7 @@
         "@vitest/eslint-plugin": "1.6.27",
         "conventional-changelog-conventionalcommits": "10.3.0",
         "eslint": "10.8.1",
-        "globals": "17.9.0",
+        "globals": "17.10.0",
         "homebridge": "2.3.1",
         "husky": "9.1.7",
         "jiti": "2.7.0",
