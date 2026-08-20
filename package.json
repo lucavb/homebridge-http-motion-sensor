@@ -94,7 +94,7 @@
         "tsdown": "0.22.14",
         "typescript": "6.0.3",
         "typescript-eslint": "8.67.0",
-        "vitest": "4.1.10"
+        "vitest": "4.1.11"
     },
     "peerDependencies": {
         "homebridge": "^1.6.0 || ^2.0.0"
