@@ -83,7 +83,7 @@
         "@types/node": "24.13.3",
         "@typescript/native": "npm:typescript@7.0.2",
         "@vitest/eslint-plugin": "1.6.27",
-        "conventional-changelog-conventionalcommits": "10.3.0",
+        "conventional-changelog-conventionalcommits": "10.4.0",
         "eslint": "10.8.1",
         "globals": "17.11.0",
         "homebridge": "2.4.0",
