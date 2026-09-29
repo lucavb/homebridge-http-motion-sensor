@@ -62,6 +62,21 @@
                             "placeholder": "11",
                             "description": "Seconds before motion resets to inactive (default: 11)"
                         },
+                        "trigger_path": {
+                            "title": "Trigger Path",
+                            "type": "string",
+                            "placeholder": "/motion",
+                            "description": "Optional exact path that triggers motion. When set, only requests to this path count (default: any path). Recommended to filter health checks and probes, which typically hit /.",
+                            "pattern": "^/[^?#]*$"
+                        },
+                        "startup_grace_seconds": {
+                            "title": "Startup Grace Period",
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 3600,
+                            "placeholder": "10",
+                            "description": "Seconds after restart during which requests are logged but ignored, absorbing retried webhooks that hit the freshly opened port. Disabled by default (0); set e.g. 30 per sensor if restarts cause false motion triggers. Size it to at least your sender's total retry horizon."
+                        },
                         "auth": {
                             "title": "Inbound Authentication",
                             "type": "object",
@@ -161,6 +176,8 @@
                 "sensors[].serial",
                 "sensors[].bind_ip",
                 "sensors[].reset_timeout",
+                "sensors[].trigger_path",
+                "sensors[].startup_grace_seconds",
                 {
                     "type": "section",
                     "title": "Security",

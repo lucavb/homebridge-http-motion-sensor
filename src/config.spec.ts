@@ -8,7 +8,9 @@ import { describe, expect, it } from 'vitest';
 import {
     buildSensorUuid,
     DEFAULT_RESET_TIMEOUT_SECONDS,
+    DEFAULT_STARTUP_GRACE_SECONDS,
     getMotionResetMs,
+    getStartupGraceMs,
     MOTION_RESET_MS,
     PlatformOptions,
     parsePlatformConfig,
@@ -171,6 +173,170 @@ describe('getMotionResetMs', () => {
     });
 });
 
+describe('getStartupGraceMs', () => {
+    it('defaults to disabled (0 seconds)', () => {
+        expect(getStartupGraceMs({ name: 'Hallway', port: 18089 })).toBe(0);
+        expect(DEFAULT_STARTUP_GRACE_SECONDS).toBe(0);
+    });
+
+    it('uses configured startup_grace_seconds in seconds', () => {
+        expect(getStartupGraceMs({ name: 'Hallway', port: 18089, startup_grace_seconds: 10 })).toBe(10_000);
+    });
+});
+
+describe('trigger_path and startup_grace_seconds configuration', () => {
+    const validConfig = {
+        platform: 'HttpMotionSensorPlatform',
+        name: 'HTTP Motion Sensor Platform',
+        sensors: [{ name: 'Hallway', port: 18089 }],
+    };
+
+    it('parses accepted trigger_path values (plain paths only)', () => {
+        for (const trigger_path of ['/', '/motion', '/motion/']) {
+            const options = new PlatformOptions({
+                ...validConfig,
+                sensors: [{ name: 'Hallway', port: 18089, trigger_path }],
+            });
+
+            expect(options.sensors[0]?.trigger_path).toBe(trigger_path);
+        }
+    });
+
+    it('rejects a trigger_path that does not start with /', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: 'motion' }],
+                }),
+        ).toThrow(/starting with \//);
+    });
+
+    it('rejects a trigger_path containing a query string', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: '/motion?x=1' }],
+                }),
+        ).toThrow(/cannot contain query strings/);
+    });
+
+    it('rejects a trigger_path containing a fragment', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: '/motion#frag' }],
+                }),
+        ).toThrow(/fragments/);
+    });
+
+    it('rejects an empty trigger_path', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: '' }],
+                }),
+        ).toThrow(/starting with \//);
+    });
+
+    it('rejects a query-only trigger_path', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: '/?x=1' }],
+                }),
+        ).toThrow(/cannot contain query strings/);
+    });
+
+    it('trims surrounding whitespace from trigger_path', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [{ name: 'Hallway', port: 18089, trigger_path: '  /motion  ' }],
+        });
+
+        expect(options.sensors[0]?.trigger_path).toBe('/motion');
+    });
+
+    it('rejects a trigger_path containing dot segments that can never match a request', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: '/a/../motion' }],
+                }),
+        ).toThrow(/can never match an incoming request/);
+    });
+
+    it('rejects a trigger_path that parses as a URL authority (leading double slash)', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: '//motion' }],
+                }),
+        ).toThrow(/can never match an incoming request/);
+    });
+
+    it('rejects a non-ASCII trigger_path (request paths arrive percent-encoded)', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, trigger_path: '/mötion' }],
+                }),
+        ).toThrow(/can never match an incoming request/);
+    });
+
+    it('parses startup_grace_seconds and coerces strings', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [{ name: 'Hallway', port: 18089, startup_grace_seconds: '10' }],
+        });
+
+        expect(options.sensors[0]?.startup_grace_seconds).toBe(10);
+    });
+
+    it('accepts startup_grace_seconds of 0', () => {
+        const options = new PlatformOptions({
+            ...validConfig,
+            sensors: [{ name: 'Hallway', port: 18089, startup_grace_seconds: 0 }],
+        });
+
+        expect(options.sensors[0]?.startup_grace_seconds).toBe(0);
+    });
+
+    it('rejects startup_grace_seconds above 3600', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, startup_grace_seconds: 3601 }],
+                }),
+        ).toThrow();
+    });
+
+    it('rejects non-integer startup_grace_seconds', () => {
+        expect(
+            () =>
+                new PlatformOptions({
+                    ...validConfig,
+                    sensors: [{ name: 'Hallway', port: 18089, startup_grace_seconds: 1.5 }],
+                }),
+        ).toThrow();
+    });
+
+    it('leaves both fields absent unchanged (backward compatibility)', () => {
+        const options = new PlatformOptions(validConfig);
+
+        expect(options.sensors[0]?.trigger_path).toBeUndefined();
+        expect(options.sensors[0]?.startup_grace_seconds).toBeUndefined();
+    });
+});
+
 describe('sensorRuntimeConfigEqual', () => {
     const base = { name: 'Hallway', port: 18089, bind_ip: '0.0.0.0' as const };
 
@@ -184,6 +350,20 @@ describe('sensorRuntimeConfigEqual', () => {
 
     it('detects reset_timeout changes', () => {
         expect(sensorRuntimeConfigEqual(base, { ...base, reset_timeout: 30 })).toBe(false);
+    });
+
+    it('detects trigger_path changes', () => {
+        expect(sensorRuntimeConfigEqual(base, { ...base, trigger_path: '/motion' })).toBe(false);
+        expect(sensorRuntimeConfigEqual({ ...base, trigger_path: '/motion' }, base)).toBe(false);
+    });
+
+    it('detects startup_grace_seconds changes', () => {
+        expect(sensorRuntimeConfigEqual(base, { ...base, startup_grace_seconds: 10 })).toBe(false);
+        expect(sensorRuntimeConfigEqual({ ...base, startup_grace_seconds: 10 }, base)).toBe(false);
+    });
+
+    it('treats unset startup_grace_seconds and explicit 0 as equal', () => {
+        expect(sensorRuntimeConfigEqual(base, { ...base, startup_grace_seconds: 0 })).toBe(true);
     });
 
     it('treats matching auth configs as equal', () => {

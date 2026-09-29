@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { PLUGIN_NAME } from './constants.ts';
 
 export const DEFAULT_RESET_TIMEOUT_SECONDS = 11;
+/** Disabled by default (0). Set startup_grace_seconds per sensor (e.g. 30) to opt in to the post-restart grace window. */
+export const DEFAULT_STARTUP_GRACE_SECONDS = 0;
 
 /** @deprecated Use getMotionResetMs(sensor) instead */
 export const MOTION_RESET_MS = DEFAULT_RESET_TIMEOUT_SECONDS * 1000;
@@ -44,6 +46,20 @@ const optionalSensorAuthSchema = z
     .optional()
     .transform((auth) => (auth?.mode === 'none' ? undefined : auth));
 
+const TRIGGER_PATH_REGEX = /^\/[^?#]*$/;
+const TRIGGER_PATH_MESSAGE =
+    'Trigger path must be a path starting with / and cannot contain query strings (?) or fragments (#)';
+const TRIGGER_PATH_URL_STABLE_MESSAGE =
+    'Trigger path must be the literal request path: values that URL parsing normalizes away (dot segments, leading double slashes, whitespace, non-ASCII) can never match an incoming request';
+
+function isUrlStableTriggerPath(value: string): boolean {
+    try {
+        return new URL(value, 'http://localhost').pathname === value;
+    } catch {
+        return false;
+    }
+}
+
 const sensorConfigSchema = z.object({
     name: z.string().min(1, 'Sensor name is required'),
     port: z.coerce.number().int().min(1024, 'Port must be at least 1024').max(65535, 'Port must be at most 65535'),
@@ -51,6 +67,13 @@ const sensorConfigSchema = z.object({
     serial: z.string().optional(),
     bind_ip: z.union([z.ipv4(), z.ipv6()]).optional().or(z.literal('0.0.0.0')),
     reset_timeout: z.coerce.number().int().min(1).max(3600).optional(),
+    trigger_path: z
+        .string()
+        .transform((value) => value.trim())
+        .refine((value) => TRIGGER_PATH_REGEX.test(value), TRIGGER_PATH_MESSAGE)
+        .refine(isUrlStableTriggerPath, TRIGGER_PATH_URL_STABLE_MESSAGE)
+        .optional(),
+    startup_grace_seconds: z.coerce.number().int().min(0).max(3600).optional(),
     auth: optionalSensorAuthSchema,
     repeater: z.array(repeaterEntrySchema).optional(),
 });
@@ -79,6 +102,10 @@ export function getMotionResetMs(sensor: HomebridgeHttpMotionSensorConfig): numb
     return (sensor.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) * 1000;
 }
 
+export function getStartupGraceMs(sensor: HomebridgeHttpMotionSensorConfig): number {
+    return (sensor.startup_grace_seconds ?? DEFAULT_STARTUP_GRACE_SECONDS) * 1000;
+}
+
 export function sensorRuntimeConfigEqual(
     a: HomebridgeHttpMotionSensorConfig,
     b: HomebridgeHttpMotionSensorConfig,
@@ -87,6 +114,9 @@ export function sensorRuntimeConfigEqual(
         a.port === b.port &&
         (a.bind_ip ?? '0.0.0.0') === (b.bind_ip ?? '0.0.0.0') &&
         (a.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) === (b.reset_timeout ?? DEFAULT_RESET_TIMEOUT_SECONDS) &&
+        a.trigger_path === b.trigger_path &&
+        (a.startup_grace_seconds ?? DEFAULT_STARTUP_GRACE_SECONDS) ===
+            (b.startup_grace_seconds ?? DEFAULT_STARTUP_GRACE_SECONDS) &&
         JSON.stringify(a.auth ?? null) === JSON.stringify(b.auth ?? null) &&
         JSON.stringify(a.repeater ?? []) === JSON.stringify(b.repeater ?? [])
     );

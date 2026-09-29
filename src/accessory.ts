@@ -7,6 +7,7 @@ import {
     type HomebridgeHttpMotionSensorRepeaterEntry,
     type SensorAccessoryContext,
     getMotionResetMs,
+    getStartupGraceMs,
     sensorRuntimeConfigEqual,
 } from './config.ts';
 
@@ -27,6 +28,47 @@ export function buildRepeaterRequestOptions(repeater: HomebridgeHttpMotionSensor
     return options;
 }
 
+export function isWithinStartupGrace(startTimeMs: number | undefined, graceMs: number, nowMs: number): boolean {
+    return graceMs > 0 && startTimeMs !== undefined && nowMs - startTimeMs < graceMs;
+}
+
+export function matchesTriggerPath(triggerPath: string | undefined, url: string | undefined): boolean {
+    if (!triggerPath) {
+        return true;
+    }
+
+    let pathname: string;
+    try {
+        pathname = new URL(url ?? '/', 'http://localhost').pathname;
+    } catch {
+        // Malformed request targets (e.g. absolute-form URLs with out-of-range
+        // ports that Node's HTTP parser accepts but the URL parser rejects)
+        // must not throw out of the request listener; treat them as non-matches.
+        return false;
+    }
+
+    return pathname === triggerPath;
+}
+
+function requestPathname(request: IncomingMessage): string {
+    try {
+        return new URL(request.url ?? '/', 'http://localhost').pathname;
+    } catch {
+        // Malformed request targets can pass Node's HTTP parser but fail URL
+        // parsing; fall back to the raw target so logs still identify the request.
+        return request.url ?? '/';
+    }
+}
+
+/**
+ * Shared log descriptor for per-request log lines. Query strings are excluded by
+ * default so sender tokens embedded in URLs never reach persisted logs.
+ */
+export function describeRequest(request: IncomingMessage, includeQuery = false): string {
+    const target = includeQuery ? (request.url ?? '/') : requestPathname(request);
+    return `${request.socket.remoteAddress ?? 'unknown'} ${request.method ?? 'GET'} ${target}`;
+}
+
 export class HttpMotionSensorAccessory {
     private motionDetected = false;
     private timeout: ReturnType<typeof setTimeout> | null = null;
@@ -35,6 +77,9 @@ export class HttpMotionSensorAccessory {
     private server?: Server;
     private config: HomebridgeHttpMotionSensorConfig;
     private readonly bindIP: string;
+    // Monotonic ms (performance.now()) at listener start. A monotonic clock keeps the
+    // grace window stable across wall-clock steps (e.g. NTP sync after a power-loss boot).
+    private serverStartedAt: number | undefined;
 
     constructor(
         private readonly log: Logging,
@@ -95,6 +140,7 @@ export class HttpMotionSensorAccessory {
         });
 
         this.server.listen(this.config.port, this.bindIP, () => {
+            this.serverStartedAt = performance.now();
             this.log.info(
                 `HTTP Motion Sensor '${this.config.name}' is listening on http://${this.bindIP}:${this.config.port}`,
             );
@@ -121,12 +167,30 @@ export class HttpMotionSensorAccessory {
             return;
         }
 
-        this.httpHandler();
+        if (isWithinStartupGrace(this.serverStartedAt, getStartupGraceMs(this.config), performance.now())) {
+            this.log.warn(
+                `Ignored request during startup grace period for '${this.config.name}' from ${describeRequest(request)}`,
+            );
+            response.writeHead(503, { 'Content-Type': 'text/plain' });
+            response.end('Service unavailable during startup grace period');
+            return;
+        }
+
+        if (!matchesTriggerPath(this.config.trigger_path, request.url)) {
+            this.log.debug(
+                `Ignored request to non-matching path for '${this.config.name}' from ${describeRequest(request)}`,
+            );
+            response.writeHead(404, { 'Content-Type': 'text/plain' });
+            response.end('Not Found');
+            return;
+        }
+
+        this.httpHandler(request);
         response.writeHead(200, { 'Content-Type': 'text/plain' });
         response.end('Successfully requested: ' + request.url);
     }
 
-    private httpHandler(): void {
+    private httpHandler(request: IncomingMessage): void {
         if (this.config.repeater && Array.isArray(this.config.repeater)) {
             for (const repeater of this.config.repeater) {
                 const options = buildRepeaterRequestOptions(repeater);
@@ -140,7 +204,7 @@ export class HttpMotionSensorAccessory {
             }
         }
 
-        this.setMotionDetected(true);
+        this.setMotionDetected(true, request);
 
         if (this.timeout) {
             clearTimeout(this.timeout);
@@ -153,7 +217,7 @@ export class HttpMotionSensorAccessory {
         }, getMotionResetMs(this.config));
     }
 
-    private setMotionDetected(detected: boolean): void {
+    private setMotionDetected(detected: boolean, request?: IncomingMessage): void {
         this.motionDetected = detected;
 
         if (!this.motionSensorService) {
@@ -165,7 +229,8 @@ export class HttpMotionSensorAccessory {
             .updateValue(this.motionDetected);
 
         if (detected) {
-            this.log.debug('Motion detected via HTTP request');
+            const requestDescriptor = request ? ` from ${describeRequest(request, true)}` : '';
+            this.log.debug(`Motion detected via HTTP request${requestDescriptor}`);
         }
     }
 

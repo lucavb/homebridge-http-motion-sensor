@@ -48,6 +48,12 @@
             matchUpdateTypes: ['major'],
             enabled: false,
         },
+        {
+            description: 'Hold conventional-changelog-conventionalcommits below v10: the v10 preset requires conventional-changelog-writer@9 (conventional-changelog@8), but @semantic-release/release-notes-generator@14, the latest stable, still loads writer@8. Unhold once release-notes-generator v15 is stable.',
+            matchPackageNames: ['conventional-changelog-conventionalcommits'],
+            matchUpdateTypes: ['major'],
+            enabled: false,
+        },
     ],
     timezone: 'Europe/Berlin',
     minimumReleaseAge: '2 days',
