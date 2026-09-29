@@ -8,6 +8,14 @@
     semanticCommits: 'enabled',
     semanticCommitType: 'chore',
     semanticCommitScope: 'deps',
+    vulnerabilityAlerts: {
+        enabled: true,
+        addLabels: ['security-update'],
+    },
+    lockFileMaintenance: {
+        enabled: true,
+        automerge: true,
+    },
     packageRules: [
         {
             matchUpdateTypes: ['patch'],
@@ -35,13 +43,10 @@
             reviewers: ['lucavb'],
         },
         {
-            matchDatasources: ['npm'],
-            vulnerabilityAlerts: {
-                enabled: true,
-            },
-            matchCurrentAge: '0 days',
-            automerge: true,
-            addLabels: ['security-update'],
+            description: 'Block typescript major updates: the TS7 native compiler has no programmatic API yet, typescript-eslint cannot integrate (typescript-eslint#10940)',
+            matchPackageNames: ['typescript'],
+            matchUpdateTypes: ['major'],
+            enabled: false,
         },
     ],
     timezone: 'Europe/Berlin',
