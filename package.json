@@ -69,7 +69,7 @@
         "test:watch": "vitest"
     },
     "dependencies": {
-        "zod": "4.6.5"
+        "zod": "4.6.6"
     },
     "devDependencies": {
         "@commitlint/cli": "21.2.3",
