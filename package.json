@@ -91,7 +91,7 @@
         "jiti": "2.7.0",
         "prettier": "3.9.10",
         "semantic-release": "25.0.9",
-        "tsdown": "0.23.2",
+        "tsdown": "0.23.3",
         "typescript": "6.0.3",
         "typescript-eslint": "8.72.1",
         "vitest": "5.0.5"
